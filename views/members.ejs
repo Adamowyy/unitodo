@@ -1,13 +1,26 @@
 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 max-w-lg">
   <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">👥 Członkowie grupy: <%= group.name %></h3>
+
+  <% const currentUser = typeof user !== 'undefined' ? user : null;
+     const isOwner = members.some(m => m.id === currentUser?.id && m.role === 'owner'); %>
   
   <div class="space-y-2 mb-6">
     <% members.forEach(m => { %>
-      <div class="flex items-center gap-2 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
-        <span class="text-sm text-gray-800 dark:text-gray-200"><%= m.username %></span>
-        <span class="text-xs px-2 py-0.5 rounded-full <%= m.role === 'owner' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' %>">
-          <%= m.role === 'owner' ? 'Właściciel' : 'Członek' %>
-        </span>
+      <div class="flex items-center justify-between gap-2 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-800 dark:text-gray-200"><%= m.username %></span>
+          <span class="text-xs px-2 py-0.5 rounded-full <%= m.role === 'owner' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' %>">
+            <%= m.role === 'owner' ? 'Właściciel' : 'Członek' %>
+          </span>
+        </div>
+        <% if (isOwner && m.role !== 'owner' && m.id !== currentUser?.id) { %>
+          <form method="POST" action="/groups/<%= group.id %>/members/<%= m.id %>?_method=DELETE" onsubmit="return confirm('Usunąć <%= m.username %> z grupy?')" class="inline">
+            <input type="hidden" name="_method" value="DELETE">
+            <button type="submit" class="text-xs text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-2 py-1 border border-red-200 dark:border-red-800 rounded-lg transition">
+              Usuń
+            </button>
+          </form>
+        <% } %>
       </div>
     <% }) %>
   </div>

@@ -88,23 +88,23 @@ router.get('/groups/:id/tasks', async (req, res) => {
 
 // POST /groups/:id/tasks
 router.post('/groups/:id/tasks', async (req, res) => {
-  const { title, content, priority, due_date } = req.body;
+  const { title, content, priority, due_date, assigned_to } = req.body;
   if (!title?.trim()) return res.redirect(`/groups/${req.params.id}/tasks`);
   await run(
-    "INSERT INTO items (group_id, type, title, content, priority, status, due_date) VALUES ($1, 'task', $2, $3, $4, 'todo', $5)",
-    [req.params.id, title.trim(), content || '', parseInt(priority) || 1, due_date || null]
+    "INSERT INTO items (group_id, type, title, content, priority, status, due_date, assigned_to) VALUES ($1, 'task', $2, $3, $4, 'todo', $5, $6)",
+    [req.params.id, title.trim(), content || '', parseInt(priority) || 1, due_date || null, assigned_to ? parseInt(assigned_to) : null]
   );
   res.redirect(`/groups/${req.params.id}/tasks`);
 });
 
 // PUT /tasks/:id
 router.put('/tasks/:id', async (req, res) => {
-  const { title, content, priority, status, due_date } = req.body;
+  const { title, content, priority, status, due_date, assigned_to } = req.body;
   const task = await getOne('SELECT group_id FROM items WHERE id = $1', [req.params.id]);
   if (!task) return res.redirect('/');
   await run(
-    "UPDATE items SET title = $1, content = $2, priority = $3, status = $4, due_date = $5, updated_at = NOW() WHERE id = $6 AND type = 'task'",
-    [title, content || '', parseInt(priority) || 1, status || 'todo', due_date || null, req.params.id]
+    "UPDATE items SET title = $1, content = $2, priority = $3, status = $4, due_date = $5, assigned_to = $6, updated_at = NOW() WHERE id = $7 AND type = 'task'",
+    [title, content || '', parseInt(priority) || 1, status || 'todo', due_date || null, assigned_to ? parseInt(assigned_to) : null, req.params.id]
   );
   res.redirect(`/groups/${task.group_id}/tasks`);
 });

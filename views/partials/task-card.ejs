@@ -3,7 +3,8 @@
   const pLabel = ['', 'Brak', 'Niski', 'Średni', 'Wysoki'][task.priority] || '';
   const pBorder = ['', '', 'border-blue-200 dark:border-blue-800', 'border-orange-200 dark:border-orange-800', 'border-red-200 dark:border-red-800'][task.priority] || 'border-gray-200 dark:border-gray-700';
   const isDone = task.status === 'done' || task.is_completed;
-  const taskData = JSON.stringify({id:task.id, title:task.title, content:task.content||'', priority:task.priority, status:task.status||'todo', due_date:task.due_date||''});
+  const taskData = JSON.stringify({id:task.id, title:task.title, content:task.content||'', priority:task.priority, status:task.status||'todo', due_date:task.due_date||'', assigned_to:task.assigned_to||''});
+  const assignee = task.assigned_to && members ? members.find(m => m.id === task.assigned_to) : null;
 %>
 <div class="task-card bg-white dark:bg-gray-800 rounded-lg border <%= pBorder %> p-3 cursor-grab active:cursor-grabbing animate-slide <%= isDone ? 'opacity-60' : '' %>" 
      draggable="true" data-task-id="<%= task.id %>"
@@ -36,6 +37,9 @@
   </div>
   
   <h4 class="font-medium text-gray-800 dark:text-gray-200 text-sm mb-1"><%= task.title %></h4>
+  <% if (assignee) { %>
+    <div class="text-xs text-gray-400 dark:text-gray-500 mb-1">👤 <%= assignee.username %></div>
+  <% } %>
   <% if (task.content) { %>
     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2"><%= task.content %></p>
   <% } %>

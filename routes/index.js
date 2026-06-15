@@ -84,4 +84,20 @@ router.post('/groups/join/:code', async (req, res) => {
   res.redirect(`/groups/${group.id}/notes`);
 });
 
+// DELETE /groups/:id/members/:userId — Remove member (owner only)
+router.delete('/groups/:id/members/:userId', async (req, res) => {
+  const group = await getOne('SELECT * FROM groups WHERE id = $1', [req.params.id]);
+  if (!group) return res.redirect('/');
+
+  // Only owner can remove members
+  const membership = await getOne('SELECT role FROM group_members WHERE group_id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+  if (!membership || membership.role !== 'owner') return res.redirect(`/groups/${req.params.id}/members`);
+
+  // Don't remove yourself
+  if (parseInt(req.params.userId) === req.user.id) return res.redirect(`/groups/${req.params.id}/members`);
+
+  await run('DELETE FROM group_members WHERE group_id = $1 AND user_id = $2', [req.params.id, req.params.userId]);
+  res.redirect(`/groups/${req.params.id}/members`);
+});
+
 module.exports = router;
