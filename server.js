@@ -28,6 +28,11 @@ app.set('views', path.join(__dirname, 'views'));
 const authRoutes = require('./auth/routes');
 app.use('/', authRoutes);
 
+// Public pages (no auth required)
+app.get('/privacy', (req, res) => {
+  res.render('layout', { title: 'Polityka prywatności — UniTodo', view: 'privacy' });
+});
+
 // Make user available to all views
 app.use((req, res, next) => {
   res.locals.user = req.user || null;

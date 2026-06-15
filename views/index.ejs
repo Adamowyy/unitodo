@@ -143,3 +143,40 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
   });
 });
 </script>
+
+<!-- Footer — homepage only -->
+<footer class="mt-12 pt-6 pb-8 border-t border-gray-200 dark:border-gray-700">
+  <div class="text-center text-xs text-gray-400 dark:text-gray-500 space-y-1">
+    <!-- Desktop variant -->
+    <div id="footer-desktop" style="display:none">
+      <p>💻 UniTodo Desktop</p>
+      <p>Dostępna również przez przeglądarkę: 
+        <a href="https://example.com" class="text-blue-500 hover:text-blue-400 underline">example.com</a>
+      </p>
+      <p class="mt-2">
+        © 2026 UNIversal Developers — 
+        <a href="/privacy" class="hover:text-gray-600 dark:hover:text-gray-300 underline">Polityka prywatności</a>
+      </p>
+    </div>
+    <!-- Web variant -->
+    <div id="footer-web" style="display:none">
+      <p>
+        <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300">UniTodo</a>
+        &nbsp;·&nbsp;
+        <a href="/privacy" class="hover:text-gray-600 dark:hover:text-gray-300 underline">Polityka prywatności</a>
+        &nbsp;·&nbsp;
+        <a href="https://example.com/contact" target="_blank" rel="noopener" class="hover:text-gray-600 dark:hover:text-gray-300 underline">Kontakt</a>
+      </p>
+      <p class="mt-1">© 2026 UNIversal Developers</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Show correct footer variant
+(function() {
+  var isDesktop = localStorage.getItem('unitodo_from') === 'desktop';
+  var el = document.getElementById(isDesktop ? 'footer-desktop' : 'footer-web');
+  if (el) el.style.display = 'block';
+})();
+</script>

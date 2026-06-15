@@ -1,23 +1,13 @@
 // public/app.js — Frontend JavaScript
 
-// Banner detection — desktop vs web
+// Desktop app detection — sets localStorage flag for footer
 (function() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('from') === 'app') {
     localStorage.setItem('unitodo_from', 'desktop');
-    // Clean URL without reload
     const url = new URL(window.location);
     url.searchParams.delete('from');
     window.history.replaceState({}, '', url);
-  }
-  
-  const source = localStorage.getItem('unitodo_from');
-  if (source === 'desktop') {
-    const banner = document.getElementById('banner-desktop');
-    if (banner) banner.style.display = 'block';
-  } else {
-    const banner = document.getElementById('banner-web');
-    if (banner) banner.style.display = 'block';
   }
 })();
 
