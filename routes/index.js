@@ -45,8 +45,15 @@ router.put('/groups/:id', async (req, res) => {
   res.redirect('/');
 });
 
-// DELETE /groups/:id — Delete
+// DELETE /groups/:id — Delete (owner only)
 router.delete('/groups/:id', async (req, res) => {
+  const membership = await getOne(
+    'SELECT role FROM group_members WHERE group_id = $1 AND user_id = $2',
+    [req.params.id, req.user.id]
+  );
+  if (!membership || membership.role !== 'owner') {
+    return res.redirect('/');
+  }
   await run('DELETE FROM groups WHERE id = $1', [req.params.id]);
   res.redirect('/');
 });

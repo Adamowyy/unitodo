@@ -10,12 +10,14 @@
       <a href="/groups/<%= group.id %>/members" class="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg transition">
         👥 Członkowie
       </a>
+      <% if (group.role === 'owner') { %>
       <form method="POST" action="/groups/<%= group.id %>?_method=DELETE" onsubmit="return confirm('Usunąć grupę wraz ze wszystkimi danymi?')" class="inline">
         <input type="hidden" name="_method" value="DELETE">
         <button type="submit" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg transition">
           🗑️ Usuń
         </button>
       </form>
+      <% } %>
     </div>
   </div>
 
