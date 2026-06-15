@@ -1,6 +1,6 @@
 // public/app.js — Frontend JavaScript
 
-// Desktop app detection — sets localStorage flag for footer
+// Desktop app detection
 (function() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('from') === 'app') {
@@ -11,13 +11,11 @@
   }
 })();
 
-// Obsługa _method dla PUT/DELETE
 document.addEventListener('DOMContentLoaded', function() {
-  // Method override przez formularze z _method
+  // Method override for _method forms
   document.addEventListener('submit', function(e) {
     const form = e.target;
     
-    // data-confirm works for ALL forms
     const confirmMsg = form.getAttribute('data-confirm');
     if (confirmMsg && !confirm(confirmMsg)) {
       e.preventDefault();
@@ -36,55 +34,20 @@ document.addEventListener('DOMContentLoaded', function() {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams(formData)
       }).then(resp => {
-        if (resp.redirected) {
-          window.location.href = resp.url;
-        } else {
-          window.location.reload();
-        }
+        if (resp.redirected) window.location.href = resp.url;
+        else window.location.reload();
       }).catch(() => window.location.reload());
     }
   });
 
-  // Zamknij modale po kliknięciu poza nimi
+  // Close modals on backdrop click
   document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', function(e) {
-      if (e.target === this) {
-        this.classList.remove('active');
-      }
+      if (e.target === this) this.classList.remove('active');
     });
   });
 
-  // Live sync — polling dla stron grupy
   initLiveSync();
-
-  // Comment form submission (event delegation)
-  document.addEventListener('submit', function(e) {
-    const form = e.target;
-    if (!form.classList.contains('comment-form')) return;
-    
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    
-    const noteId = form.getAttribute('data-note-id');
-    const input = form.querySelector('input');
-    if (!input) return;
-    
-    const content = input.value.trim();
-    if (!content) return;
-    
-    input.disabled = true;
-    
-    fetch('/notes/' + noteId + '/comments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'content=' + encodeURIComponent(content)
-    }).then(r => r.json())
-      .then(data => {
-        if (data.success) location.reload();
-        else input.disabled = false;
-      })
-      .catch(() => location.reload());
-  });
 });
 
 function closeModal(id) {
@@ -97,22 +60,16 @@ async function generateInviteCode(groupId) {
     const resp = await fetch('/groups/' + groupId + '/invite', { method: 'POST' });
     const data = await resp.json();
     const el = document.getElementById('inviteCode');
-    if (el && data.invite_code) {
-      el.textContent = data.invite_code;
-    }
-  } catch (e) {
-    console.error('Failed to generate invite code', e);
-  }
+    if (el && data.invite_code) el.textContent = data.invite_code;
+  } catch (e) {}
 }
 
 function copyInviteCode() {
   const el = document.getElementById('inviteCode');
-  if (el) {
-    navigator.clipboard.writeText(el.textContent);
-  }
+  if (el) navigator.clipboard.writeText(el.textContent);
 }
 
-// --- Move task (mobile-friendly) ---
+// --- Move task (mobile) ---
 function moveTask(taskId, newStatus) {
   fetch('/tasks/' + taskId + '/move', {
     method: 'PUT',
@@ -123,43 +80,54 @@ function moveTask(taskId, newStatus) {
     .catch(() => location.reload());
 }
 
+// --- Comment submission ---
+function submitComment(btn, noteId) {
+  var input = btn.parentElement.querySelector('input');
+  if (!input) return;
+  var content = input.value.trim();
+  if (!content) return;
+  
+  btn.disabled = true;
+  
+  fetch('/notes/' + noteId + '/comments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'content=' + encodeURIComponent(content)
+  }).then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) location.reload();
+      else btn.disabled = false;
+    })
+    .catch(function() { location.reload(); });
+}
+
 // --- Live Sync ---
-let pollTimer = null;
-let pageLoadTime = new Date().toISOString();
+var pollTimer = null;
+var pageLoadTime = new Date().toISOString();
 
 function initLiveSync() {
-  const m = window.location.pathname.match(/^\/groups\/(\d+)\/(notes|tasks)/);
+  var m = window.location.pathname.match(/^\/groups\/(\d+)\/(notes|tasks)/);
   if (!m) return;
-
-  const groupId = m[1];
-
-  pollTimer = setInterval(async () => {
-    try {
-      const resp = await fetch('/groups/' + groupId + '/poll?since=' + encodeURIComponent(pageLoadTime));
-      const data = await resp.json();
-      if (data.hasChanges) {
-        showSyncBanner();
-      }
-    } catch (e) { /* ignore */ }
+  var groupId = m[1];
+  pollTimer = setInterval(function() {
+    fetch('/groups/' + groupId + '/poll?since=' + encodeURIComponent(pageLoadTime))
+      .then(function(r) { return r.json(); })
+      .then(function(data) { if (data.hasChanges) showSyncBanner(); })
+      .catch(function() {});
   }, 5000);
 }
 
 function showSyncBanner() {
-  const active = document.activeElement;
-  const isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
-  const isModalOpen = document.querySelector('.modal-overlay.active');
-  
-  if (!isEditing && !isModalOpen) {
-    window.location.reload();
-    return;
-  }
-
+  var active = document.activeElement;
+  var isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+  var isModalOpen = document.querySelector('.modal-overlay.active');
+  if (!isEditing && !isModalOpen) { location.reload(); return; }
   if (document.getElementById('syncBanner')) return;
-  const banner = document.createElement('div');
+  var banner = document.createElement('div');
   banner.id = 'syncBanner';
   banner.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-3 animate-slide cursor-pointer';
   banner.innerHTML = '🔄 Są nowe zmiany — <span class="underline font-medium">odśwież</span>';
-  banner.onclick = () => window.location.reload();
+  banner.onclick = function() { location.reload(); };
   document.body.appendChild(banner);
-  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 30000);
+  setTimeout(function() { if (banner.parentNode) banner.remove(); }, 30000);
 }

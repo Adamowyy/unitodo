@@ -57,10 +57,10 @@
               <span class="text-gray-600 dark:text-gray-300"><%= c.content %></span>
             </div>
           <% }) %>
-          <form class="comment-form flex gap-2 mt-2" data-note-id="<%= note.id %>">
-            <input type="text" placeholder="Dodaj komentarz..." maxlength="500" required
+          <form class="flex gap-2 mt-2" onsubmit="return false">
+            <input type="text" placeholder="Dodaj komentarz..." maxlength="500"
               class="flex-1 text-xs px-2 py-1.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-1 focus:ring-blue-500 outline-none">
-            <button type="submit" class="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0">Wyślij</button>
+            <button type="button" onclick="submitComment(this, <%= note.id %>)" class="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0">Wyślij</button>
           </form>
         </div>
       </div>
