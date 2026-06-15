@@ -39,7 +39,7 @@
         <% if (note.content) { %>
           <p class="text-gray-600 text-sm whitespace-pre-wrap dark:text-gray-300"><%= note.content %></p>
         <% } %>
-        <p class="text-xs text-gray-400 mt-3 dark:text-gray-500"><%= new Date(note.created_at).toLocaleString('pl-PL') %></p>
+        <p class="text-xs text-gray-400 mt-3 dark:text-gray-500"><%= new Date(note.created_at).toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' }) %></p>
       </div>
     <% }) %>
   </div>
