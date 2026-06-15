@@ -23,7 +23,7 @@
     <% notes.forEach(note => { 
       const noteComments = typeof commentsByNote !== 'undefined' ? (commentsByNote[note.id] || []) : [];
     %>
-      <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700 dark:hover:shadow-gray-900/30">
+      <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700 dark:hover:shadow-gray-900/30 flex flex-col">
         <div class="flex justify-between items-start mb-2">
           <h3 class="font-semibold text-gray-800 text-lg dark:text-gray-200"><%= note.title %></h3>
           <div class="flex gap-1">
@@ -50,7 +50,7 @@
         </div>
 
         <!-- Comments section -->
-        <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+        <div class="mt-auto pt-3 border-t border-gray-100 dark:border-gray-700">
           <% noteComments.forEach(c => { %>
             <div class="flex gap-2 mb-2 text-sm">
               <span class="text-xs font-medium text-gray-500 dark:text-gray-400 shrink-0"><%= c.author || '?' %></span>
