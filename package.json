@@ -8,7 +8,33 @@
     "server": "node server.js",
     "dev": "vercel dev",
     "deploy": "vercel --prod --yes",
-    "migrate": "node db/migrate.js"
+    "migrate": "node db/migrate.js",
+    "build": "electron-builder --win",
+    "build:portable": "electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.unitodo.app",
+    "productName": "UniTodo",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron-main.js",
+      "package.json"
+    ],
+    "extraMetadata": {
+      "main": "electron-main.js"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico"
+    }
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -20,6 +46,7 @@
     "pg": "^8.21.0"
   },
   "devDependencies": {
-    "electron": "^42.4.0"
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.3"
   }
 }
