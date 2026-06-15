@@ -55,7 +55,14 @@
       </select>
     </div>
 
-    <% if (sort !== 'created_desc' || filter_priority > 0 || filter_status) { %>
+    <!-- Ukryj zrobione -->
+    <label class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 cursor-pointer select-none">
+      <input type="checkbox" onchange="toggleHideDone(this.checked)" <%= hideDone ? 'checked' : '' %>
+        class="rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400">
+      Ukryj zrobione
+    </label>
+
+    <% if (sort !== 'created_desc' || filter_priority > 0 || filter_status || hideDone) { %>
       <a href="/groups/<%= group.id %>/tasks" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Wyczyść filtry</a>
     <% } %>
   </div>
@@ -74,7 +81,7 @@
       <div class="kanban-column space-y-3" data-status="todo"
         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
         <% todoTasks.forEach(task => { %>
-          <%- include('partials/task-card', { task, subtasks: subtasksByParent[task.id] || [], group }) %>
+          <%- include('partials/task-card', { task, subtasks: subtasksByParent[task.id] || [], group, hideDone }) %>
         <% }) %>
         <% if (todoTasks.length === 0) { %>
           <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
@@ -97,7 +104,7 @@
       <div class="kanban-column space-y-3" data-status="in_progress"
         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
         <% inProgressTasks.forEach(task => { %>
-          <%- include('partials/task-card', { task, subtasks: subtasksByParent[task.id] || [], group }) %>
+          <%- include('partials/task-card', { task, subtasks: subtasksByParent[task.id] || [], group, hideDone }) %>
         <% }) %>
         <% if (inProgressTasks.length === 0) { %>
           <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
@@ -110,6 +117,7 @@
 
     <!-- DONE -->
     <% if (!filter_status || filter_status === 'done') { %>
+      <% if (!hideDone) { %>
       <% const doneColSpan = filter_status ? 'md:col-span-3' : ''; %>
     <div class="bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 <%= doneColSpan %>">
       <div class="flex items-center gap-2 mb-4">
@@ -120,7 +128,7 @@
       <div class="kanban-column space-y-3" data-status="done"
         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
         <% doneTasks.forEach(task => { %>
-          <%- include('partials/task-card', { task, subtasks: subtasksByParent[task.id] || [], group }) %>
+          <%- include('partials/task-card', { task, subtasks: subtasksByParent[task.id] || [], group, hideDone }) %>
         <% }) %>
         <% if (doneTasks.length === 0) { %>
           <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
@@ -129,6 +137,7 @@
         <% } %>
       </div>
     </div>
+    <% } %>
     <% } %>
   </div>
 </div>
@@ -176,14 +185,15 @@
   </div>
 </div>
 
-<!-- Modal dodawania podzadania -->
+<!-- Modal dodawania/edycji podzadania -->
 <div id="subtaskModal" class="modal-overlay">
   <div class="modal-content">
     <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold dark:text-gray-200">Nowe podzadanie</h3>
+      <h3 class="text-lg font-semibold dark:text-gray-200" id="subtaskModalTitle">Nowe podzadanie</h3>
       <button onclick="closeModal('subtaskModal')" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400">&times;</button>
     </div>
     <form method="POST" id="subtaskForm">
+      <input type="hidden" name="_method" id="subtaskMethod" value="POST">
       <input type="hidden" name="parent_id" id="subtaskParentId">
       <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tytuł</label>
@@ -192,7 +202,7 @@
       </div>
       <div class="flex justify-end gap-2">
         <button type="button" onclick="closeModal('subtaskModal')" class="px-4 py-2 text-gray-600 dark:text-gray-300">Anuluj</button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Dodaj</button>
+        <button type="submit" id="subtaskSubmitBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Dodaj</button>
       </div>
     </form>
   </div>
@@ -223,13 +233,26 @@ function openTaskModal(taskData) {
   }
 }
 
-function openSubtaskModal(e, taskId) {
+function openSubtaskModal(e, taskId, subtaskData) {
   e.stopPropagation();
   const modal = document.getElementById('subtaskModal');
   modal.classList.add('active');
+  if (subtaskData) {
+    // Edit mode
+    document.getElementById('subtaskModalTitle').textContent = 'Edytuj podzadanie';
+    document.getElementById('subtaskMethod').value = 'PUT';
+    document.getElementById('subtaskForm').action = '/subtasks/' + subtaskData.id;
+    document.getElementById('subtaskTitle').value = subtaskData.title;
+    document.getElementById('subtaskSubmitBtn').textContent = 'Zapisz';
+  } else {
+    // Create mode
+    document.getElementById('subtaskModalTitle').textContent = 'Nowe podzadanie';
+    document.getElementById('subtaskMethod').value = 'POST';
+    document.getElementById('subtaskForm').action = '/tasks/' + taskId + '/subtasks';
+    document.getElementById('subtaskTitle').value = '';
+    document.getElementById('subtaskSubmitBtn').textContent = 'Dodaj';
+  }
   document.getElementById('subtaskParentId').value = taskId;
-  document.getElementById('subtaskForm').action = '/tasks/' + taskId + '/subtasks';
-  document.getElementById('subtaskTitle').value = '';
   document.getElementById('subtaskTitle').focus();
 }
 
@@ -237,6 +260,16 @@ function toggleSubtask(id) {
   fetch('/tasks/' + id + '/toggle', { method: 'PUT' })
     .then(r => r.json())
     .then(data => { if (data.success) location.reload(); });
+}
+
+function completeTask(taskId) {
+  fetch('/tasks/' + taskId + '/move', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'done' })
+  }).then(r => r.json())
+    .then(data => { if (data.success) location.reload(); })
+    .catch(() => location.reload());
 }
 
 // Drag & Drop
@@ -287,6 +320,52 @@ function applyFilters(sort, priority, status) {
     if (status === '') params.delete('filter_status');
     else params.set('filter_status', status);
   }
+  // Preserve hide_done from checkbox
+  const hideDone = document.querySelector('#hideDoneCheck')?.checked;
+  if (hideDone) params.set('hide_done', '1');
+  else params.delete('hide_done');
+  saveFilters(params);
   window.location.search = params.toString();
 }
+
+function toggleHideDone(checked) {
+  const params = new URLSearchParams(window.location.search);
+  if (checked) params.set('hide_done', '1');
+  else params.delete('hide_done');
+  saveFilters(params);
+  window.location.search = params.toString();
+}
+
+function saveFilters(params) {
+  if (!params) params = new URLSearchParams(window.location.search);
+  ['sort', 'filter_priority', 'filter_status'].forEach(k => {
+    if (params.has(k)) localStorage.setItem('tasks_' + k, params.get(k));
+    else localStorage.removeItem('tasks_' + k);
+  });
+  if (params.has('hide_done')) localStorage.setItem('tasks_hide_done', '1');
+  else localStorage.removeItem('tasks_hide_done');
+}
+
+// On page load: restore filters from localStorage if URL has no params
+(function() {
+  // Give the hide_done checkbox an ID for easy access
+  const cb = document.querySelector('input[type=checkbox][onchange*=\"toggleHideDone\"]');
+  if (cb) cb.id = 'hideDoneCheck';
+
+  if (window.location.search) {
+    // URL has params — save to localStorage
+    saveFilters();
+  } else {
+    // No URL params — check localStorage
+    const params = new URLSearchParams();
+    ['sort', 'filter_priority', 'filter_status'].forEach(k => {
+      const v = localStorage.getItem('tasks_' + k);
+      if (v && v !== '' && v !== '0' && v !== 'created_desc') params.set(k, v);
+    });
+    if (localStorage.getItem('tasks_hide_done') === '1') params.set('hide_done', '1');
+    if (params.toString()) {
+      window.location.search = params.toString();
+    }
+  }
+})();
 </script>

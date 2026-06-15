@@ -35,6 +35,9 @@ router.get('/groups/:id/tasks', (req, res) => {
   // --- status filter ---
   const filterStatus = req.query.filter_status || '';
 
+  // --- hide done column ---
+  const hideDone = req.query.hide_done === '1';
+
   // Build query
   let allItems;
   if (query.trim()) {
@@ -78,6 +81,7 @@ router.get('/groups/:id/tasks', (req, res) => {
     sort,
     filter_priority: filterPriority,
     filter_status: filterStatus,
+    hideDone,
     view: 'tasks'
   });
 });
@@ -151,6 +155,26 @@ router.put('/tasks/:id/move', (req, res) => {
   
   db.prepare('UPDATE items SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, req.params.id);
   res.json({ success: true });
+});
+
+// PUT /subtasks/:id - Edytuj tytuł podzadania
+router.put('/subtasks/:id', (req, res) => {
+  const db = getDb();
+  const { title } = req.body;
+  if (!title || !title.trim()) return res.json({ error: 'Tytuł wymagany' });
+
+  const item = db.prepare('SELECT * FROM items WHERE id = ? AND parent_id IS NOT NULL').get(req.params.id);
+  if (!item) return res.json({ error: 'Not found' });
+
+  db.prepare('UPDATE items SET title = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(title.trim(), req.params.id);
+
+  // Find the root parent to redirect properly
+  const parent = db.prepare('SELECT group_id FROM items WHERE id = ?').get(item.parent_id);
+  if (parent) {
+    res.redirect(`/groups/${parent.group_id}/tasks`);
+  } else {
+    res.redirect('/');
+  }
 });
 
 module.exports = router;
