@@ -75,6 +75,17 @@ function copyInviteCode() {
   }
 }
 
+// --- Move task (mobile-friendly) ---
+function moveTask(taskId, newStatus) {
+  fetch('/tasks/' + taskId + '/move', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: newStatus })
+  }).then(r => r.json())
+    .then(data => { if (data.success) location.reload(); })
+    .catch(() => location.reload());
+}
+
 // --- Live Sync ---
 let pollTimer = null;
 let pageLoadTime = new Date().toISOString();

@@ -85,30 +85,32 @@
         <% }) %>
         <% if (todoTasks.length === 0) { %>
           <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-            Przeciągnij zadania tutaj
+          <span class="hidden md:inline">Przeciągnij zadania tutaj</span>
+          <span class="md:hidden">Brak zadań</span>
           </div>
-        <% } %>
-      </div>
-    </div>
-    <% } %>
+          <% } %>
+          </div>
+          </div>
+          <% } %>
 
-    <!-- IN PROGRESS -->
-    <% if (!filter_status || filter_status === 'in_progress') { %>
-      <% const inProgressColSpan = filter_status ? 'md:col-span-3' : ''; %>
-    <div class="bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 <%= inProgressColSpan %>">
-      <div class="flex items-center gap-2 mb-4">
-        <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
-        <h3 class="font-semibold text-gray-700 dark:text-gray-300">W trakcie</h3>
-        <span class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full"><%= inProgressTasks.length %></span>
-      </div>
-      <div class="kanban-column space-y-3" data-status="in_progress"
-        ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
-        <% inProgressTasks.forEach(task => { %>
+          <!-- IN PROGRESS -->
+          <% if (!filter_status || filter_status === 'in_progress') { %>
+          <% const inProgressColSpan = filter_status ? 'md:col-span-3' : ''; %>
+          <div class="bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 <%= inProgressColSpan %>">
+          <div class="flex items-center gap-2 mb-4">
+          <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+          <h3 class="font-semibold text-gray-700 dark:text-gray-300">W trakcie</h3>
+          <span class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full"><%= inProgressTasks.length %></span>
+          </div>
+          <div class="kanban-column space-y-3" data-status="in_progress"
+          ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+          <% inProgressTasks.forEach(task => { %>
           <%- include('partials/task-card', { task, subtasks: subtasksByParent[task.id] || [], group, hideDone, members }) %>
-        <% }) %>
-        <% if (inProgressTasks.length === 0) { %>
+          <% }) %>
+          <% if (inProgressTasks.length === 0) { %>
           <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-            Przeciągnij zadania tutaj
+          <span class="hidden md:inline">Przeciągnij zadania tutaj</span>
+          <span class="md:hidden">Brak zadań</span>
           </div>
         <% } %>
       </div>
@@ -132,7 +134,8 @@
         <% }) %>
         <% if (doneTasks.length === 0) { %>
           <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-            Przeciągnij zadania tutaj
+            <span class="hidden md:inline">Przeciągnij zadania tutaj</span>
+            <span class="md:hidden">Brak zadań</span>
           </div>
         <% } %>
       </div>
