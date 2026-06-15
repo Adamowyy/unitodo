@@ -79,18 +79,23 @@ router.post('/groups/:id/notes', async (req, res) => {
 
 // POST /notes/:id/comments — Add comment
 router.post('/notes/:id/comments', async (req, res) => {
-  const note = await getOne("SELECT group_id FROM items WHERE id = $1 AND type = 'note'", [req.params.id]);
-  if (!note) return res.redirect('/');
-  
-  const { content } = req.body;
-  if (content?.trim()) {
-    await run(
-      "INSERT INTO items (group_id, parent_id, type, title, content, created_by) VALUES ($1, $2, 'comment', 'Komentarz', $3, $4)",
-      [note.group_id, req.params.id, content.trim(), req.user.id]
-    );
+  try {
+    const note = await getOne("SELECT group_id FROM items WHERE id = $1 AND type = 'note'", [req.params.id]);
+    if (!note) return res.redirect('/');
+    
+    const { content } = req.body;
+    if (content?.trim()) {
+      await run(
+        "INSERT INTO items (group_id, parent_id, type, title, content, created_by) VALUES ($1, $2, 'comment', 'Komentarz', $3, $4)",
+        [note.group_id, req.params.id, content.trim(), req.user.id]
+      );
+    }
+    
+    res.redirect(303, '/groups/' + note.group_id + '/notes');
+  } catch (err) {
+    console.error('Comment error:', err.message);
+    res.redirect('/');
   }
-  
-  res.redirect('/groups/' + note.group_id + '/notes');
 });
 
 // PUT /notes/:id
