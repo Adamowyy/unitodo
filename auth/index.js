@@ -5,6 +5,28 @@ const { getOne } = require('../db/pg');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'unitodo-dev-secret-change-in-production';
 const TOKEN_EXPIRY = '7d';
+const ADMIN_IDS = (process.env.ADMIN_USER_IDS || '').split(',').map(id => parseInt(id.trim())).filter(Boolean);
+
+// Check if user is admin
+function isAdmin(userId) {
+  return ADMIN_IDS.includes(userId);
+}
+
+// Require admin — must be authenticated AND be an admin
+async function requireAdmin(req, res, next) {
+  if (!req.user) {
+    return res.redirect('/login');
+  }
+  if (!isAdmin(req.user.id)) {
+    return res.status(403).render('layout', {
+      title: '403 — Brak dostępu',
+      view: null,
+      body: '<div class="text-center py-16"><h1 class="text-4xl font-bold text-gray-300 dark:text-gray-600 mb-4">403</h1><p class="text-gray-500 dark:text-gray-400">Nie masz uprawnień administratora.</p></div>',
+      user: req.user
+    });
+  }
+  next();
+}
 
 // Require auth — redirect to login if no valid token
 async function requireAuth(req, res, next) {
@@ -46,4 +68,4 @@ function generateToken(userId) {
   return jwt.sign({ userId }, JWT_SECRET, { expiresIn: TOKEN_EXPIRY });
 }
 
-module.exports = { requireAuth, optionalAuth, generateToken, JWT_SECRET };
+module.exports = { requireAuth, requireAdmin, optionalAuth, generateToken, JWT_SECRET, isAdmin };

@@ -68,6 +68,9 @@
       <div class="flex items-center gap-3">
         <% if (user) { %>
           <span class="text-sm text-gray-600 dark:text-gray-400"><%= user.username %></span>
+          <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+            <a href="/admin" class="text-xs text-yellow-600 dark:text-yellow-400 hover:underline" title="Panel administratora">🛡️</a>
+          <% } %>
           <a href="/logout" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition">Wyloguj</a>
         <% } %>
         <button onclick="toggleDarkMode()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl" title="Przełącz motyw">🌙</button>
@@ -102,6 +105,8 @@
       </div>
     <% } else if (typeof view !== 'undefined' && view === 'privacy') { %>
       <%- include('privacy') %>
+    <% } else if (typeof view !== 'undefined' && view === 'admin') { %>
+      <%- include('admin') %>
     <% } else { %>
       <%- body %>
     <% } %>

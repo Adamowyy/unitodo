@@ -34,8 +34,10 @@ app.get('/privacy', (req, res) => {
 });
 
 // Make user available to all views
+const { isAdmin } = require('./auth');
 app.use((req, res, next) => {
   res.locals.user = req.user || null;
+  res.locals.isAdmin = req.user ? isAdmin(req.user.id) : false;
   next();
 });
 
@@ -44,10 +46,12 @@ const { requireAuth } = require('./auth');
 const indexRouter = require('./routes/index');
 const notesRouter = require('./routes/notes');
 const tasksRouter = require('./routes/tasks');
+const adminRouter = require('./routes/admin');
 
 app.use('/', requireAuth, indexRouter);
 app.use('/', requireAuth, notesRouter);
 app.use('/', requireAuth, tasksRouter);
+app.use('/admin', requireAuth, adminRouter);
 
 // 404
 app.use((req, res) => {
