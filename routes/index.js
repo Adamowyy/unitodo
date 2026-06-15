@@ -58,6 +58,21 @@ router.delete('/groups/:id', async (req, res) => {
   res.redirect('/');
 });
 
+// POST /groups/:id/leave — Leave group (non-owner only)
+router.post('/groups/:id/leave', async (req, res) => {
+  const membership = await getOne(
+    'SELECT role FROM group_members WHERE group_id = $1 AND user_id = $2',
+    [req.params.id, req.user.id]
+  );
+  // Owner cannot leave — must delete group instead
+  if (!membership || membership.role === 'owner') {
+    return res.redirect('/');
+  }
+  await run('DELETE FROM group_members WHERE group_id = $1 AND user_id = $2',
+    [req.params.id, req.user.id]);
+  res.redirect('/');
+});
+
 // GET /groups/:id/members — List members
 router.get('/groups/:id/members', async (req, res) => {
   const group = await getOne('SELECT * FROM groups WHERE id = $1', [req.params.id]);
