@@ -1,4 +1,4 @@
-// public/app.js - Frontend JavaScript
+// public/app.js — Frontend JavaScript
 
 // Obsługa _method dla PUT/DELETE
 document.addEventListener('DOMContentLoaded', function() {
@@ -34,9 +34,49 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+
+  // Live sync — polling dla stron grupy
+  initLiveSync();
 });
 
-// Globalne funkcje dla modal
 function closeModal(id) {
   document.getElementById(id).classList.remove('active');
+}
+
+// --- Live Sync ---
+let pollTimer = null;
+let pageLoadTime = new Date().toISOString();
+
+function initLiveSync() {
+  // Only on group pages: /groups/:id/notes or /groups/:id/tasks
+  const m = window.location.pathname.match(/^\/groups\/(\d+)\/(notes|tasks)/);
+  if (!m) return;
+
+  const groupId = m[1];
+
+  pollTimer = setInterval(async () => {
+    try {
+      const resp = await fetch(`/groups/${groupId}/poll?since=${encodeURIComponent(pageLoadTime)}`);
+      const data = await resp.json();
+      if (data.hasChanges) {
+        showSyncBanner();
+      }
+    } catch (e) { /* ignore network errors */ }
+  }, 5000);
+}
+
+function showSyncBanner() {
+  if (document.getElementById('syncBanner')) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'syncBanner';
+  banner.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-3 animate-slide cursor-pointer';
+  banner.innerHTML = '🔄 Są nowe zmiany — <span class="underline font-medium">odśwież</span>';
+  banner.onclick = () => window.location.reload();
+  document.body.appendChild(banner);
+
+  // Auto-hide after 30s
+  setTimeout(() => {
+    if (banner.parentNode) banner.remove();
+  }, 30000);
 }

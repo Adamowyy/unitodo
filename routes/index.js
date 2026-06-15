@@ -100,4 +100,26 @@ router.delete('/groups/:id/members/:userId', async (req, res) => {
   res.redirect(`/groups/${req.params.id}/members`);
 });
 
+// GET /groups/:id/poll?since=<ISO> — Check for changes since timestamp
+router.get('/groups/:id/poll', async (req, res) => {
+  const since = req.query.since;
+  if (!since) return res.json({ hasChanges: false });
+
+  // Check items
+  const itemChanges = await getOne(
+    'SELECT COUNT(*) as count FROM items WHERE group_id = $1 AND updated_at > $2',
+    [req.params.id, since]
+  );
+  if (parseInt(itemChanges.count) > 0) return res.json({ hasChanges: true });
+
+  // Check group members
+  const memberChanges = await getOne(
+    'SELECT COUNT(*) as count FROM group_members WHERE group_id = $1 AND joined_at > $2',
+    [req.params.id, since]
+  );
+  if (parseInt(memberChanges.count) > 0) return res.json({ hasChanges: true });
+
+  res.json({ hasChanges: false });
+});
+
 module.exports = router;
