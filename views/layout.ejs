@@ -75,6 +75,18 @@
     </div>
   </nav>
 
+  <!-- Desktop app banner -->
+  <div id="banner-desktop" style="display:none" class="bg-blue-600 text-white text-center py-2 text-sm">
+    💻 Korzystasz z aplikacji desktopowej. Dostępna również online: 
+    <a href="https://example.com" class="underline font-medium hover:text-blue-200">example.com</a>
+  </div>
+
+  <!-- Web app banner -->
+  <div id="banner-web" style="display:none" class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center py-2 text-sm border-b dark:border-gray-700">
+    🌐 Chcesz mieć aplikację na Windows? Pobierz wersję desktopową — 
+    <a href="https://example.com/contact" class="underline font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800">skontaktuj się ze mną</a>
+  </div>
+
   <main class="max-w-6xl mx-auto px-4 py-6">
     <% if (typeof view !== 'undefined' && view === 'index') { %>
       <%- include('partials/navbar', { groups }) %>

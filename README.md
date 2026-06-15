@@ -3,6 +3,7 @@
 Wieloosobowa aplikacja do zarządzania projektami — grupy, notatki, zadania z podzadaniami i priorytetami.
 
 🌐 **Online:** https://example.com
+🖥️ **Desktop:** Electron wrapper (exe)
 
 ## Funkcje
 
@@ -25,6 +26,7 @@ Wieloosobowa aplikacja do zarządzania projektami — grupy, notatki, zadania z 
 - **Baza:** Neon PostgreSQL (serverless)
 - **Auth:** JWT (jsonwebtoken + bcryptjs)
 - **Desktop:** Electron (ładuje Vercel URL)
+- **Build:** electron-builder → NSIS installer (.exe)
 
 ## Uruchomienie lokalne
 
@@ -37,10 +39,9 @@ vercel dev        # potrzebne .env.local (vercel env pull)
 
 ```bash
 npm start         # Electron ładuje https://example.com
+npm run build     # Buduje instalator .exe → dist/
 ```
 
 ## Deploy
 
-```bash
-vercel --prod --yes
-```
+Auto-deploy przez Vercel + GitHub — każdy commit na `main` = production deploy.

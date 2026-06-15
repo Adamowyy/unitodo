@@ -1,6 +1,6 @@
 const { app, BrowserWindow } = require('electron');
 
-const URL = process.env.UNITODO_URL || 'https://example.com';
+const URL = (process.env.UNITODO_URL || 'https://example.com') + '?from=app';
 
 let mainWindow = null;
 
