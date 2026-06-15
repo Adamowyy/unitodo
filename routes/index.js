@@ -37,8 +37,14 @@ router.post('/groups', async (req, res) => {
   res.redirect('/');
 });
 
-// PUT /groups/:id — Update
+// PUT /groups/:id — Update (owner only)
 router.put('/groups/:id', async (req, res) => {
+  const membership = await getOne(
+    'SELECT role FROM group_members WHERE group_id = $1 AND user_id = $2',
+    [req.params.id, req.user.id]
+  );
+  if (!membership || membership.role !== 'owner') return res.redirect('/');
+
   const { name, description } = req.body;
   if (!name?.trim()) return res.redirect('/');
   await run('UPDATE groups SET name = $1, description = $2 WHERE id = $3', [name, description || '', req.params.id]);
