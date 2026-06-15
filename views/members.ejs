@@ -14,7 +14,7 @@
           </span>
         </div>
         <% if (isOwner && m.role !== 'owner' && m.id !== currentUser?.id) { %>
-          <form method="POST" action="/groups/<%= group.id %>/members/<%= m.id %>?_method=DELETE" onsubmit="return confirm('Usunąć <%= m.username %> z grupy?')" class="inline">
+          <form method="POST" action="/groups/<%= group.id %>/members/<%= m.id %>?_method=DELETE" data-confirm="Usunąć <%= m.username %> z grupy?')" class="inline">
             <input type="hidden" name="_method" value="DELETE">
             <button type="submit" class="text-xs text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-2 py-1 border border-red-200 dark:border-red-800 rounded-lg transition">
               Usuń

@@ -19,6 +19,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const methodInput = form.querySelector('input[name="_method"]');
     if (methodInput && methodInput.value !== 'POST') {
       e.preventDefault();
+      
+      // Check for data-confirm attribute
+      const confirmMsg = form.getAttribute('data-confirm');
+      if (confirmMsg && !confirm(confirmMsg)) return;
+      
       const method = methodInput.value;
       const action = form.action;
       const formData = new FormData(form);

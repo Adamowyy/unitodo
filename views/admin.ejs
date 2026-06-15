@@ -65,10 +65,10 @@
               <td class="py-2 text-gray-800 dark:text-gray-200"><%= u.username %></td>
               <td class="py-2 text-gray-500 dark:text-gray-400 text-xs"><%= new Date(u.created_at).toLocaleString('pl-PL') %></td>
               <td class="py-2 text-right">
-                <form method="POST" action="/admin/users/<%= u.id %>/reset-password" class="inline" onsubmit="return confirm('Zresetować hasło użytkownika <%= u.username %>?')">
+                <form method="POST" action="/admin/users/<%= u.id %>/reset-password" class="inline" data-confirm="Zresetować hasło użytkownika <%= u.username %>?')">
                   <button class="text-xs text-yellow-600 dark:text-yellow-400 hover:underline mr-2">🔑 Reset hasła</button>
                 </form>
-                <form method="POST" action="/admin/users/<%= u.id %>/delete" class="inline" onsubmit="return confirm('USUNĄĆ użytkownika <%= u.username %> i wszystkie jego dane? Tej operacji nie można cofnąć!')">
+                <form method="POST" action="/admin/users/<%= u.id %>/delete" class="inline" data-confirm="USUNĄĆ użytkownika <%= u.username %> i wszystkie jego dane? Tej operacji nie można cofnąć!')">
                   <button class="text-xs text-red-500 dark:text-red-400 hover:underline">🗑️ Usuń</button>
                 </form>
               </td>
