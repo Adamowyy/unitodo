@@ -30,7 +30,7 @@ app.use('/', authRoutes);
 
 // Public pages (no auth required)
 app.get('/privacy', (req, res) => {
-  res.render('layout', { title: 'Polityka prywatności — UniTodo', view: 'privacy' });
+  res.render('layout', { title: 'Polityka prywatności — UniTodo', view: 'privacy', user: req.user || null });
 });
 
 // Make user available to all views
