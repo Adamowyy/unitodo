@@ -94,6 +94,28 @@ function moveTask(taskId, newStatus) {
     .catch(() => location.reload());
 }
 
+// --- Comment submission ---
+async function submitComment(e, noteId) {
+  e.preventDefault();
+  const input = document.getElementById('commentInput' + noteId);
+  const content = input.value.trim();
+  if (!content) return;
+  
+  try {
+    const resp = await fetch('/notes/' + noteId + '/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'content=' + encodeURIComponent(content)
+    });
+    const data = await resp.json();
+    if (data.success) {
+      location.reload();
+    }
+  } catch (err) {
+    location.reload();
+  }
+}
+
 // --- Live Sync ---
 let pollTimer = null;
 let pageLoadTime = new Date().toISOString();
