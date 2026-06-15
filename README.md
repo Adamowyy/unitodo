@@ -1,70 +1,46 @@
 # UniTodo
 
-Desktopowa aplikacja do zarządzania projektami — grupy, notatki, zadania z podzadaniami i priorytetami.
+Wieloosobowa aplikacja do zarządzania projektami — grupy, notatki, zadania z podzadaniami i priorytetami.
+
+🌐 **Online:** https://example.com
 
 ## Funkcje
 
 - **Grupy projektów** — organizuj zadania i notatki w osobnych grupach
+- **Współdzielenie** — zaproś znajomych przez kod zaproszenia
+- **Konta użytkowników** — rejestracja/login (JWT)
 - **Notatki** — notatki tekstowe w ramach grupy
 - **Zadania Kanban** — tablica Todo / W trakcie / Zrobione z drag & drop
-- **Podzadania** — rozbijaj zadania na mniejsze kroki
+- **Podzadania** — rozbijaj zadania na mniejsze kroki, edytuj
 - **Priorytety** — 4 poziomy: brak, niski, średni, wysoki
-- **Terminy** — ustawiaj daty wykonania, overdue podświetlane na czerwono
+- **Terminy** — date picker, overdue podświetlane na czerwono ⚠️
 - **Wyszukiwarka** — full-text search po tytułach i treści
 - **Sortowanie i filtrowanie** — po priorytecie, terminie, statusie
-- **Dark mode** — przełącznik jasny/ciemny motyw
+- **Dark mode** — domyślnie ciemny motyw 🌙
 
 ## Tech stack
 
-- **Electron** — desktop wrapper
-- **Express** — serwer HTTP
-- **EJS** — server-side rendering
-- **SQLite** (better-sqlite3) — lokalna baza danych
-- **Tailwind CSS** (CDN) — stylowanie
+- **Frontend:** EJS + Tailwind CSS (CDN)
+- **Backend:** Express na Vercel (serverless)
+- **Baza:** Neon PostgreSQL (serverless)
+- **Auth:** JWT (jsonwebtoken + bcryptjs)
+- **Desktop:** Electron (ładuje Vercel URL)
 
-## Instalacja
+## Uruchomienie lokalne
 
 ```bash
 npm install
+vercel dev        # potrzebne .env.local (vercel env pull)
 ```
 
-## Uruchomienie
+## Desktop
 
 ```bash
-# Desktop (Electron)
-npm start
-
-# Tylko serwer (przeglądarka)
-npm run server
-# Otwórz http://localhost:3000
+npm start         # Electron ładuje https://example.com
 ```
 
-## Build
+## Deploy
 
 ```bash
-npm run build
-# Output: dist/
-```
-
-## Struktura projektu
-
-```
-unitodo/
-├── electron-main.js    # Electron main process
-├── server.js           # Express server
-├── routes/
-│   ├── index.js        # Grupy (dashboard)
-│   ├── notes.js        # Notatki
-│   └── tasks.js        # Zadania + podzadania
-├── views/
-│   ├── layout.ejs      # Główny layout
-│   ├── index.ejs       # Dashboard grup
-│   ├── notes.ejs       # Lista notatek
-│   ├── tasks.ejs       # Kanban zadań
-│   └── partials/       # Komponenty
-├── db/
-│   └── schema.js       # Inicjalizacja SQLite
-├── public/
-│   └── app.js          # Frontend JS
-└── data/               # Baza SQLite (gitignored)
+vercel --prod --yes
 ```
