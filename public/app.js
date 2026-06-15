@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('submit', function(e) {
     const form = e.target;
     
-    // data-confirm works for ALL forms (not just _method)
+    // data-confirm works for ALL forms
     const confirmMsg = form.getAttribute('data-confirm');
     if (confirmMsg && !confirm(confirmMsg)) {
       e.preventDefault();
@@ -56,6 +56,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Live sync — polling dla stron grupy
   initLiveSync();
+
+  // Comment form submission (event delegation)
+  document.addEventListener('submit', function(e) {
+    const form = e.target;
+    if (!form.classList.contains('comment-form')) return;
+    
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    
+    const noteId = form.getAttribute('data-note-id');
+    const input = form.querySelector('input');
+    if (!input) return;
+    
+    const content = input.value.trim();
+    if (!content) return;
+    
+    input.disabled = true;
+    
+    fetch('/notes/' + noteId + '/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'content=' + encodeURIComponent(content)
+    }).then(r => r.json())
+      .then(data => {
+        if (data.success) location.reload();
+        else input.disabled = false;
+      })
+      .catch(() => location.reload());
+  });
 });
 
 function closeModal(id) {
@@ -65,7 +94,7 @@ function closeModal(id) {
 // --- Invite code ---
 async function generateInviteCode(groupId) {
   try {
-    const resp = await fetch(`/groups/${groupId}/invite`, { method: 'POST' });
+    const resp = await fetch('/groups/' + groupId + '/invite', { method: 'POST' });
     const data = await resp.json();
     const el = document.getElementById('inviteCode');
     if (el && data.invite_code) {
@@ -94,34 +123,11 @@ function moveTask(taskId, newStatus) {
     .catch(() => location.reload());
 }
 
-// --- Comment submission ---
-async function submitComment(e, noteId) {
-  e.preventDefault();
-  const input = document.getElementById('commentInput' + noteId);
-  const content = input.value.trim();
-  if (!content) return;
-  
-  try {
-    const resp = await fetch('/notes/' + noteId + '/comments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'content=' + encodeURIComponent(content)
-    });
-    const data = await resp.json();
-    if (data.success) {
-      location.reload();
-    }
-  } catch (err) {
-    location.reload();
-  }
-}
-
 // --- Live Sync ---
 let pollTimer = null;
 let pageLoadTime = new Date().toISOString();
 
 function initLiveSync() {
-  // Only on group pages: /groups/:id/notes or /groups/:id/tasks
   const m = window.location.pathname.match(/^\/groups\/(\d+)\/(notes|tasks)/);
   if (!m) return;
 
@@ -129,17 +135,16 @@ function initLiveSync() {
 
   pollTimer = setInterval(async () => {
     try {
-      const resp = await fetch(`/groups/${groupId}/poll?since=${encodeURIComponent(pageLoadTime)}`);
+      const resp = await fetch('/groups/' + groupId + '/poll?since=' + encodeURIComponent(pageLoadTime));
       const data = await resp.json();
       if (data.hasChanges) {
         showSyncBanner();
       }
-    } catch (e) { /* ignore network errors */ }
+    } catch (e) { /* ignore */ }
   }, 5000);
 }
 
 function showSyncBanner() {
-  // Auto-reload if user is not editing
   const active = document.activeElement;
   const isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
   const isModalOpen = document.querySelector('.modal-overlay.active');
@@ -149,7 +154,6 @@ function showSyncBanner() {
     return;
   }
 
-  // User is editing — show banner instead
   if (document.getElementById('syncBanner')) return;
   const banner = document.createElement('div');
   banner.id = 'syncBanner';
