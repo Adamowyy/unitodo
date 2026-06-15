@@ -43,6 +43,7 @@ async function requireAuth(req, res, next) {
     if (!user) throw new Error('User not found');
     req.user = user;
     res.locals.user = user;
+    res.locals.isAdmin = isAdmin(user.id);
     next();
   } catch (err) {
     if (req.headers.accept?.includes('application/json')) {
