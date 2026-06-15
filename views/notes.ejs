@@ -20,7 +20,9 @@
   </div>
 <% } else { %>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <% notes.forEach(note => { %>
+    <% notes.forEach(note => { 
+      const noteComments = typeof commentsByNote !== 'undefined' ? (commentsByNote[note.id] || []) : [];
+    %>
       <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700 dark:hover:shadow-gray-900/30">
         <div class="flex justify-between items-start mb-2">
           <h3 class="font-semibold text-gray-800 text-lg dark:text-gray-200"><%= note.title %></h3>
@@ -39,7 +41,28 @@
         <% if (note.content) { %>
           <p class="text-gray-600 text-sm whitespace-pre-wrap dark:text-gray-300"><%= note.content %></p>
         <% } %>
-        <p class="text-xs text-gray-400 mt-3 dark:text-gray-500"><%= new Date(note.created_at).toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' }) %></p>
+        <div class="flex items-center gap-2 text-xs text-gray-400 mt-3 dark:text-gray-500">
+          <% if (note.author) { %>
+            <span class="font-medium text-gray-500 dark:text-gray-400">👤 <%= note.author %></span>
+            <span>·</span>
+          <% } %>
+          <span><%= new Date(note.created_at).toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' }) %></span>
+        </div>
+
+        <!-- Comments section -->
+        <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+          <% noteComments.forEach(c => { %>
+            <div class="flex gap-2 mb-2 text-sm">
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400 shrink-0"><%= c.author || '?' %></span>
+              <span class="text-gray-600 dark:text-gray-300"><%= c.content %></span>
+            </div>
+          <% }) %>
+          <form method="POST" action="/notes/<%= note.id %>/comments" class="flex gap-2 mt-2">
+            <input type="text" name="content" placeholder="Dodaj komentarz..." maxlength="500" required
+              class="flex-1 text-xs px-2 py-1.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-1 focus:ring-blue-500 outline-none">
+            <button type="submit" class="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0">Wyślij</button>
+          </form>
+        </div>
       </div>
     <% }) %>
   </div>

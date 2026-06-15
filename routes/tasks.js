@@ -88,8 +88,8 @@ router.post('/groups/:id/tasks', async (req, res) => {
   const { title, content, priority, due_date, assigned_to } = req.body;
   if (!title?.trim()) return res.redirect(`/groups/${req.params.id}/tasks`);
   await run(
-    "INSERT INTO items (group_id, type, title, content, priority, status, due_date, assigned_to) VALUES ($1, 'task', $2, $3, $4, 'todo', $5, $6)",
-    [req.params.id, title.trim(), content || '', parseInt(priority) || 1, due_date || null, assigned_to ? parseInt(assigned_to) : null]
+    "INSERT INTO items (group_id, type, title, content, priority, status, due_date, assigned_to, created_by) VALUES ($1, 'task', $2, $3, $4, 'todo', $5, $6, $7)",
+    [req.params.id, title.trim(), content || '', parseInt(priority) || 1, due_date || null, assigned_to ? parseInt(assigned_to) : null, req.user.id]
   );
   res.redirect(`/groups/${req.params.id}/tasks`);
 });
@@ -122,8 +122,8 @@ router.post('/tasks/:id/subtasks', async (req, res) => {
   const parent = await getOne("SELECT group_id, priority FROM items WHERE id = $1 AND type = 'task'", [req.params.id]);
   if (!parent) return res.redirect('/');
   await run(
-    "INSERT INTO items (group_id, parent_id, type, title, priority, status) VALUES ($1, $2, 'task', $3, $4, 'todo')",
-    [parent.group_id, req.params.id, title.trim(), parent.priority]
+    "INSERT INTO items (group_id, parent_id, type, title, priority, status, created_by) VALUES ($1, $2, 'task', $3, $4, 'todo', $5)",
+    [parent.group_id, req.params.id, title.trim(), parent.priority, req.user.id]
   );
   res.redirect(`/groups/${parent.group_id}/tasks`);
 });
