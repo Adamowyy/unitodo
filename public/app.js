@@ -66,17 +66,23 @@ function initLiveSync() {
 }
 
 function showSyncBanner() {
-  if (document.getElementById('syncBanner')) return;
+  // Auto-reload if user is not editing
+  const active = document.activeElement;
+  const isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+  const isModalOpen = document.querySelector('.modal-overlay.active');
+  
+  if (!isEditing && !isModalOpen) {
+    window.location.reload();
+    return;
+  }
 
+  // User is editing — show banner instead
+  if (document.getElementById('syncBanner')) return;
   const banner = document.createElement('div');
   banner.id = 'syncBanner';
   banner.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-3 animate-slide cursor-pointer';
   banner.innerHTML = '🔄 Są nowe zmiany — <span class="underline font-medium">odśwież</span>';
   banner.onclick = () => window.location.reload();
   document.body.appendChild(banner);
-
-  // Auto-hide after 30s
-  setTimeout(() => {
-    if (banner.parentNode) banner.remove();
-  }, 30000);
+  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 30000);
 }
