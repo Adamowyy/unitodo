@@ -77,28 +77,20 @@ router.post('/groups/:id/notes', async (req, res) => {
   res.redirect(`/groups/${req.params.id}/notes`);
 });
 
-// POST /notes/:id/comments — Add comment (returns JSON)
+// POST /notes/:id/comments — Add comment
 router.post('/notes/:id/comments', async (req, res) => {
   const note = await getOne("SELECT group_id FROM items WHERE id = $1 AND type = 'note'", [req.params.id]);
-  if (!note) return res.status(404).json({ error: 'Note not found' });
+  if (!note) return res.redirect('/');
   
   const { content } = req.body;
-  if (!content?.trim()) return res.json({ error: 'Pusty komentarz' });
+  if (content?.trim()) {
+    await run(
+      "INSERT INTO items (group_id, parent_id, type, title, content, created_by) VALUES ($1, $2, 'comment', 'Komentarz', $3, $4)",
+      [note.group_id, req.params.id, content.trim(), req.user.id]
+    );
+  }
   
-  const result = await run(
-    "INSERT INTO items (group_id, parent_id, type, title, content, created_by) VALUES ($1, $2, 'comment', 'Komentarz', $3, $4) RETURNING id, content, created_at",
-    [note.group_id, req.params.id, content.trim(), req.user.id]
-  );
-  
-  res.json({
-    success: true,
-    comment: {
-      id: result.rows[0].id,
-      content: content.trim(),
-      author: req.user.username,
-      created_at: result.rows[0].created_at
-    }
-  });
+  res.redirect('/groups/' + note.group_id + '/notes');
 });
 
 // PUT /notes/:id

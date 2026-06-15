@@ -80,27 +80,6 @@ function moveTask(taskId, newStatus) {
     .catch(() => location.reload());
 }
 
-// --- Comment submission ---
-function submitComment(btn, noteId) {
-  var input = btn.parentElement.querySelector('input');
-  if (!input) return;
-  var content = input.value.trim();
-  if (!content) return;
-  
-  btn.disabled = true;
-  
-  fetch('/notes/' + noteId + '/comments', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'content=' + encodeURIComponent(content)
-  }).then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.success) location.reload();
-      else btn.disabled = false;
-    })
-    .catch(function() { location.reload(); });
-}
-
 // --- Live Sync ---
 var pollTimer = null;
 var pageLoadTime = new Date().toISOString();
