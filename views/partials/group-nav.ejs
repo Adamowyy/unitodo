@@ -6,7 +6,10 @@
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><%= group.description %></p>
       <% } %>
     </div>
-    <div class="flex gap-2">
+    <div class="flex gap-2 items-center">
+      <a href="/groups/<%= group.id %>/members" class="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg transition">
+        👥 Członkowie
+      </a>
       <form method="POST" action="/groups/<%= group.id %>?_method=DELETE" onsubmit="return confirm('Usunąć grupę wraz ze wszystkimi danymi?')" class="inline">
         <input type="hidden" name="_method" value="DELETE">
         <button type="submit" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg transition">
@@ -15,6 +18,21 @@
       </form>
     </div>
   </div>
+
+  <!-- Invite section -->
+  <% if (group.invite_code) { %>
+    <div class="mt-3 bg-gray-50 dark:bg-gray-900 rounded-lg p-3 flex items-center gap-2">
+      <span class="text-xs text-gray-500 dark:text-gray-400">Kod:</span>
+      <code class="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-700 dark:text-gray-300 flex-1"><%= group.invite_code %></code>
+      <button onclick="navigator.clipboard.writeText('<%= group.invite_code %>')" class="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0">Kopiuj</button>
+    </div>
+  <% } else { %>
+    <div class="mt-3">
+      <form method="POST" action="/groups/<%= group.id %>/invite" class="inline">
+        <button type="submit" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">+ Generuj kod zaproszenia</button>
+      </form>
+    </div>
+  <% } %>
 
   <!-- Search bar -->
   <form method="GET" action="" class="mt-3">

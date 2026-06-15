@@ -1,0 +1,32 @@
+<div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 max-w-lg">
+  <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">👥 Członkowie grupy: <%= group.name %></h3>
+  
+  <div class="space-y-2 mb-6">
+    <% members.forEach(m => { %>
+      <div class="flex items-center gap-2 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
+        <span class="text-sm text-gray-800 dark:text-gray-200"><%= m.username %></span>
+        <span class="text-xs px-2 py-0.5 rounded-full <%= m.role === 'owner' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' %>">
+          <%= m.role === 'owner' ? 'Właściciel' : 'Członek' %>
+        </span>
+      </div>
+    <% }) %>
+  </div>
+
+  <% if (group.invite_code) { %>
+    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Kod zaproszenia:</p>
+      <div class="flex items-center gap-2">
+        <code class="text-sm bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded text-gray-800 dark:text-gray-200 flex-1 break-all"><%= group.invite_code %></code>
+        <button onclick="navigator.clipboard.writeText('<%= group.invite_code %>')" class="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0">Kopiuj</button>
+      </div>
+    </div>
+  <% } else { %>
+    <form method="POST" action="/groups/<%= group.id %>/invite" class="inline">
+      <button type="submit" class="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Generuj kod zaproszenia</button>
+    </form>
+  <% } %>
+
+  <div class="mt-6">
+    <a href="/groups/<%= group.id %>/notes" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">← Powrót do grupy</a>
+  </div>
+</div>

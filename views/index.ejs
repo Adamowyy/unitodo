@@ -1,9 +1,47 @@
 <div class="flex justify-between items-center mb-6">
   <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Moje grupy</h1>
-  <button onclick="openModal('groupModal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">
-    + Nowa grupa
-  </button>
+  <div class="flex gap-2">
+    <button onclick="openJoinModal()" class="text-sm text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition">
+      🔗 Dołącz do grupy
+    </button>
+    <button onclick="openModal('groupModal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+      + Nowa grupa
+    </button>
+  </div>
 </div>
+
+<!-- Dołącz do grupy modal -->
+<div id="joinModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold">Dołącz do grupy</h3>
+      <button onclick="closeModal('joinModal')" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400">&times;</button>
+    </div>
+    <form onsubmit="joinGroup(event)" class="flex gap-2">
+      <input type="text" id="inviteCodeInput" placeholder="Wklej kod zaproszenia..."
+        class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none dark:bg-gray-700 dark:text-gray-200 text-sm">
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Dołącz</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function openJoinModal() {
+  document.getElementById('joinModal').classList.add('active');
+  document.getElementById('inviteCodeInput').focus();
+}
+function joinGroup(e) {
+  e.preventDefault();
+  const code = document.getElementById('inviteCodeInput').value.trim();
+  if (code) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/groups/join/' + code;
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+</script>
 
 <% if (groups.length === 0) { %>
   <div class="text-center py-16 text-gray-400 dark:text-gray-500">

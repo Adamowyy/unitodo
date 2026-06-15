@@ -1,16 +1,17 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middleware - method override przez _method w POST
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Method override middleware
+// Method override
 app.use((req, res, next) => {
   if (req.body && req.body._method) {
     req.method = req.body._method.toUpperCase();
@@ -23,23 +24,41 @@ app.use((req, res, next) => {
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Routes
+// Auth routes (no auth required)
+const authRoutes = require('./auth/routes');
+app.use('/', authRoutes);
+
+// Make user available to all views
+app.use((req, res, next) => {
+  res.locals.user = req.user || null;
+  next();
+});
+
+// Protected routes
+const { requireAuth } = require('./auth');
 const indexRouter = require('./routes/index');
 const notesRouter = require('./routes/notes');
 const tasksRouter = require('./routes/tasks');
 
-app.use('/', indexRouter);
-app.use('/', notesRouter);
-app.use('/', tasksRouter);
+app.use('/', requireAuth, indexRouter);
+app.use('/', requireAuth, notesRouter);
+app.use('/', requireAuth, tasksRouter);
 
 // 404
 app.use((req, res) => {
-  res.status(404).render('layout', { 
-    title: '404', 
-    body: '<h1 class="text-2xl font-bold">404 - Strona nie znaleziona</h1><a href="/" class="text-blue-500 hover:underline mt-4 inline-block">Powrót</a>' 
+  res.status(404).render('layout', {
+    title: '404',
+    view: '404',
+    user: req.user || null
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`UniTodo running on http://localhost:${PORT}`);
-});
+// Only start server if not on Vercel
+if (process.env.VERCEL !== '1') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`UniTodo running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

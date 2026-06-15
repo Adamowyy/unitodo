@@ -1,78 +1,78 @@
 const express = require('express');
 const router = express.Router();
-const { getDb } = require('../db/schema');
+const { getAll, getOne, run } = require('../db/pg');
 
-// GET /groups/:id/tasks - Lista zadań w grupie (z podzadaniami)
-router.get('/groups/:id/tasks', (req, res) => {
-  const db = getDb();
-  const group = db.prepare('SELECT * FROM groups WHERE id = ?').get(req.params.id);
+// GET /groups/:id/tasks
+router.get('/groups/:id/tasks', async (req, res) => {
+  const group = await getOne(
+    `SELECT g.*, gm.role FROM groups g JOIN group_members gm ON gm.group_id = g.id 
+     WHERE g.id = $1 AND gm.user_id = $2`,
+    [req.params.id, req.user.id]
+  );
   if (!group) return res.redirect('/');
-  
+
   const query = req.query.q || '';
-
-  // --- sorting ---
   const sort = req.query.sort || 'created_desc';
-  let orderClause;
-  switch(sort) {
-    case 'priority_desc': orderClause = 'priority DESC, created_at DESC'; break;
-    case 'priority_asc':  orderClause = 'priority ASC, created_at DESC'; break;
-    case 'due_asc':       orderClause = 'CASE WHEN due_date IS NULL THEN 1 ELSE 0 END, due_date ASC, created_at DESC'; break;
-    case 'due_desc':      orderClause = 'CASE WHEN due_date IS NULL THEN 1 ELSE 0 END, due_date DESC, created_at DESC'; break;
-    case 'title_asc':     orderClause = 'title ASC, created_at DESC'; break;
-    case 'created_asc':   orderClause = 'created_at ASC'; break;
-    default:              orderClause = 'created_at DESC';
-  }
-
-  // --- priority filter ---
   const filterPriority = parseInt(req.query.filter_priority) || 0;
-  let priorityWhere = '';
-  let priorityParam = null;
-  if (filterPriority >= 2 && filterPriority <= 4) {
-    priorityWhere = 'AND priority >= ?';
-    priorityParam = filterPriority;
-  }
-
-  // --- status filter ---
   const filterStatus = req.query.filter_status || '';
-
-  // --- hide done column ---
   const hideDone = req.query.hide_done === '1';
 
-  // Build query
-  let allItems;
-  if (query.trim()) {
-    const sql = `SELECT * FROM items WHERE group_id = ? AND type = 'task' ${priorityWhere} AND (title LIKE ? OR content LIKE ?) ORDER BY ${orderClause}`;
-    const params = priorityParam
-      ? [req.params.id, priorityParam, `%${query.trim()}%`, `%${query.trim()}%`]
-      : [req.params.id, `%${query.trim()}%`, `%${query.trim()}%`];
-    allItems = db.prepare(sql).all(...params);
-  } else {
-    const sql = `SELECT * FROM items WHERE group_id = ? AND type = ? ${priorityWhere} ORDER BY ${orderClause}`;
-    const params = priorityParam
-      ? [req.params.id, 'task', priorityParam]
-      : [req.params.id, 'task'];
-    allItems = db.prepare(sql).all(...params);
+  // Build sort
+  let orderClause;
+  switch (sort) {
+    case 'priority_desc': orderClause = 'priority DESC, created_at DESC'; break;
+    case 'priority_asc': orderClause = 'priority ASC, created_at DESC'; break;
+    case 'due_asc': orderClause = 'CASE WHEN due_date IS NULL THEN 1 ELSE 0 END, due_date ASC, created_at DESC'; break;
+    case 'due_desc': orderClause = 'CASE WHEN due_date IS NULL THEN 1 ELSE 0 END, due_date DESC, created_at DESC'; break;
+    case 'title_asc': orderClause = 'title ASC, created_at DESC'; break;
+    case 'created_asc': orderClause = 'created_at ASC'; break;
+    default: orderClause = 'created_at DESC';
   }
 
-  // Podziel na root taski i podzadania
+  // Build conditions
+  const conditions = ["group_id = $1", "type = 'task'"];
+  const params = [req.params.id];
+  let paramIdx = 2;
+
+  if (query.trim()) {
+    conditions.push(`(title ILIKE $${paramIdx} OR content ILIKE $${paramIdx + 1})`);
+    params.push(`%${query.trim()}%`, `%${query.trim()}%`);
+    paramIdx += 2;
+  }
+
+  if (filterPriority >= 2 && filterPriority <= 4) {
+    conditions.push(`priority >= $${paramIdx}`);
+    params.push(filterPriority);
+    paramIdx++;
+  }
+
+  const whereClause = conditions.join(' AND ');
+  const sql = `SELECT * FROM items WHERE ${whereClause} ORDER BY ${orderClause}`;
+  const allItems = await getAll(sql, params);
+
   const rootTasks = allItems.filter(t => !t.parent_id);
   const subtasks = allItems.filter(t => t.parent_id);
 
-  // Pogrupuj podzadania po parent_id
   const subtasksByParent = {};
   for (const st of subtasks) {
     if (!subtasksByParent[st.parent_id]) subtasksByParent[st.parent_id] = [];
     subtasksByParent[st.parent_id].push(st);
   }
 
-  // Podziel root taski według statusu
   const todoTasks = rootTasks.filter(t => t.status === 'todo' || (!t.status && !t.is_completed));
   const inProgressTasks = rootTasks.filter(t => t.status === 'in_progress');
   const doneTasks = rootTasks.filter(t => t.status === 'done' || t.is_completed);
 
+  // Get members for invite UI
+  const members = await getAll(
+    'SELECT u.id, u.username, gm.role FROM users u JOIN group_members gm ON gm.user_id = u.id WHERE gm.group_id = $1 ORDER BY gm.role, u.username',
+    [req.params.id]
+  );
+
   res.render('layout', {
-    title: `Zadania - ${group.name}`,
+    title: `Zadania — ${group.name}`,
     group,
+    members,
     todoTasks,
     inProgressTasks,
     doneTasks,
@@ -86,95 +86,77 @@ router.get('/groups/:id/tasks', (req, res) => {
   });
 });
 
-// POST /groups/:id/tasks - Dodaj zadanie
-router.post('/groups/:id/tasks', (req, res) => {
-  const db = getDb();
+// POST /groups/:id/tasks
+router.post('/groups/:id/tasks', async (req, res) => {
   const { title, content, priority, due_date } = req.body;
-  if (!title || !title.trim()) return res.status(400).json({ error: 'Tytuł wymagany' });
-  db.prepare('INSERT INTO items (group_id, type, title, content, priority, status, due_date) VALUES (?, ?, ?, ?, ?, ?, ?)').run(
-    req.params.id, 'task', title.trim(), content || '', parseInt(priority) || 1, 'todo', due_date || null
+  if (!title?.trim()) return res.redirect(`/groups/${req.params.id}/tasks`);
+  await run(
+    "INSERT INTO items (group_id, type, title, content, priority, status, due_date) VALUES ($1, 'task', $2, $3, $4, 'todo', $5)",
+    [req.params.id, title.trim(), content || '', parseInt(priority) || 1, due_date || null]
   );
   res.redirect(`/groups/${req.params.id}/tasks`);
 });
 
-// PUT /tasks/:id - Edytuj zadanie
-router.put('/tasks/:id', (req, res) => {
-  const db = getDb();
+// PUT /tasks/:id
+router.put('/tasks/:id', async (req, res) => {
   const { title, content, priority, status, due_date } = req.body;
-  const task = db.prepare('SELECT group_id FROM items WHERE id = ?').get(req.params.id);
+  const task = await getOne('SELECT group_id FROM items WHERE id = $1', [req.params.id]);
   if (!task) return res.redirect('/');
-  
-  db.prepare("UPDATE items SET title = ?, content = ?, priority = ?, status = ?, due_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND type = 'task'").run(
-    title, content || '', parseInt(priority) || 1, status || 'todo', due_date || null, req.params.id
+  await run(
+    "UPDATE items SET title = $1, content = $2, priority = $3, status = $4, due_date = $5, updated_at = NOW() WHERE id = $6 AND type = 'task'",
+    [title, content || '', parseInt(priority) || 1, status || 'todo', due_date || null, req.params.id]
   );
   res.redirect(`/groups/${task.group_id}/tasks`);
 });
 
-// DELETE /tasks/:id - Usuń zadanie (kaskadowo usuwa podzadania)
-router.delete('/tasks/:id', (req, res) => {
-  const db = getDb();
-  const task = db.prepare('SELECT group_id FROM items WHERE id = ?').get(req.params.id);
+// DELETE /tasks/:id
+router.delete('/tasks/:id', async (req, res) => {
+  const task = await getOne("SELECT group_id FROM items WHERE id = $1 AND type = 'task'", [req.params.id]);
   if (!task) return res.redirect('/');
-  // Usuń podzadania najpierw (bo foreign key z ON DELETE CASCADE powinien zadziałać, ale dla bezpieczeństwa)
-  db.prepare('DELETE FROM items WHERE parent_id = ?').run(req.params.id);
-  db.prepare("DELETE FROM items WHERE id = ? AND type = 'task'").run(req.params.id);
+  await run('DELETE FROM items WHERE parent_id = $1', [req.params.id]);
+  await run('DELETE FROM items WHERE id = $1', [req.params.id]);
   res.redirect(`/groups/${task.group_id}/tasks`);
 });
 
-// POST /tasks/:id/subtasks - Dodaj podzadanie
-router.post('/tasks/:id/subtasks', (req, res) => {
-  const db = getDb();
+// POST /tasks/:id/subtasks
+router.post('/tasks/:id/subtasks', async (req, res) => {
   const { title } = req.body;
-  if (!title || !title.trim()) return res.status(400).json({ error: 'Tytuł podzadania wymagany' });
-  
-  const parent = db.prepare("SELECT group_id, priority FROM items WHERE id = ? AND type = 'task'").get(req.params.id);
+  if (!title?.trim()) return res.json({ error: 'Tytuł wymagany' });
+  const parent = await getOne("SELECT group_id, priority FROM items WHERE id = $1 AND type = 'task'", [req.params.id]);
   if (!parent) return res.redirect('/');
-  
-  db.prepare('INSERT INTO items (group_id, parent_id, type, title, priority, status) VALUES (?, ?, ?, ?, ?, ?)').run(
-    parent.group_id, req.params.id, 'task', title.trim(), parent.priority, 'todo'
+  await run(
+    "INSERT INTO items (group_id, parent_id, type, title, priority, status) VALUES ($1, $2, 'task', $3, $4, 'todo')",
+    [parent.group_id, req.params.id, title.trim(), parent.priority]
   );
   res.redirect(`/groups/${parent.group_id}/tasks`);
 });
 
-// PUT /tasks/:id/toggle - Przełącz is_completed podzadania
-router.put('/tasks/:id/toggle', (req, res) => {
-  const db = getDb();
-  const item = db.prepare('SELECT * FROM items WHERE id = ?').get(req.params.id);
+// PUT /tasks/:id/toggle
+router.put('/tasks/:id/toggle', async (req, res) => {
+  const item = await getOne('SELECT * FROM items WHERE id = $1', [req.params.id]);
   if (!item) return res.json({ error: 'Not found' });
-  
   const newCompleted = item.is_completed ? 0 : 1;
-  db.prepare('UPDATE items SET is_completed = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(newCompleted, req.params.id);
+  await run('UPDATE items SET is_completed = $1, updated_at = NOW() WHERE id = $2', [newCompleted, req.params.id]);
   res.json({ success: true, is_completed: newCompleted });
 });
 
-// PUT /tasks/:id/move - Zmień status zadania (drag & drop)
-router.put('/tasks/:id/move', (req, res) => {
-  const db = getDb();
+// PUT /tasks/:id/move
+router.put('/tasks/:id/move', async (req, res) => {
   const { status } = req.body;
   if (!['todo', 'in_progress', 'done'].includes(status)) return res.json({ error: 'Invalid status' });
-  
-  db.prepare('UPDATE items SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, req.params.id);
+  await run('UPDATE items SET status = $1, updated_at = NOW() WHERE id = $2', [status, req.params.id]);
   res.json({ success: true });
 });
 
-// PUT /subtasks/:id - Edytuj tytuł podzadania
-router.put('/subtasks/:id', (req, res) => {
-  const db = getDb();
+// PUT /subtasks/:id
+router.put('/subtasks/:id', async (req, res) => {
   const { title } = req.body;
-  if (!title || !title.trim()) return res.json({ error: 'Tytuł wymagany' });
-
-  const item = db.prepare('SELECT * FROM items WHERE id = ? AND parent_id IS NOT NULL').get(req.params.id);
+  if (!title?.trim()) return res.json({ error: 'Tytuł wymagany' });
+  const item = await getOne('SELECT * FROM items WHERE id = $1 AND parent_id IS NOT NULL', [req.params.id]);
   if (!item) return res.json({ error: 'Not found' });
-
-  db.prepare('UPDATE items SET title = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(title.trim(), req.params.id);
-
-  // Find the root parent to redirect properly
-  const parent = db.prepare('SELECT group_id FROM items WHERE id = ?').get(item.parent_id);
-  if (parent) {
-    res.redirect(`/groups/${parent.group_id}/tasks`);
-  } else {
-    res.redirect('/');
-  }
+  await run('UPDATE items SET title = $1, updated_at = NOW() WHERE id = $2', [title.trim(), req.params.id]);
+  const parent = await getOne('SELECT group_id FROM items WHERE id = $1', [item.parent_id]);
+  res.redirect(`/groups/${parent.group_id}/tasks`);
 });
 
 module.exports = router;

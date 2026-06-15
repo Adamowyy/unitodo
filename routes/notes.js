@@ -1,53 +1,73 @@
 const express = require('express');
 const router = express.Router();
-const { getDb } = require('../db/schema');
+const { getAll, getOne, run } = require('../db/pg');
 
-// GET /groups/:id/notes - Lista notatek w grupie
-router.get('/groups/:id/notes', (req, res) => {
-  const db = getDb();
-  const group = db.prepare('SELECT * FROM groups WHERE id = ?').get(req.params.id);
+// GET /groups/:id/notes
+router.get('/groups/:id/notes', async (req, res) => {
+  const group = await getOne(
+    `SELECT g.*, gm.role FROM groups g JOIN group_members gm ON gm.group_id = g.id 
+     WHERE g.id = $1 AND gm.user_id = $2`,
+    [req.params.id, req.user.id]
+  );
   if (!group) return res.redirect('/');
+
   const query = req.query.q || '';
   let notes;
   if (query.trim()) {
-    notes = db.prepare("SELECT * FROM items WHERE group_id = ? AND type = 'note' AND (title LIKE ? OR content LIKE ?) ORDER BY created_at DESC")
-      .all(req.params.id, `%${query.trim()}%`, `%${query.trim()}%`);
+    notes = await getAll(
+      "SELECT * FROM items WHERE group_id = $1 AND type = 'note' AND (title ILIKE $2 OR content ILIKE $3) ORDER BY created_at DESC",
+      [req.params.id, `%${query.trim()}%`, `%${query.trim()}%`]
+    );
   } else {
-    notes = db.prepare('SELECT * FROM items WHERE group_id = ? AND type = ? ORDER BY created_at DESC').all(req.params.id, 'note');
+    notes = await getAll(
+      "SELECT * FROM items WHERE group_id = $1 AND type = 'note' ORDER BY created_at DESC",
+      [req.params.id]
+    );
   }
+
+  // Get members for invite UI
+  const members = await getAll(
+    'SELECT u.id, u.username, gm.role FROM users u JOIN group_members gm ON gm.user_id = u.id WHERE gm.group_id = $1 ORDER BY gm.role, u.username',
+    [req.params.id]
+  );
+
   res.render('layout', {
-    title: `Notatki - ${group.name}`,
+    title: `Notatki — ${group.name}`,
     group,
     notes,
+    members,
     query,
     view: 'notes'
   });
 });
 
-// POST /groups/:id/notes - Dodaj notatkę
-router.post('/groups/:id/notes', (req, res) => {
-  const db = getDb();
+// POST /groups/:id/notes
+router.post('/groups/:id/notes', async (req, res) => {
   const { title, content } = req.body;
-  if (!title || !title.trim()) return res.status(400).json({ error: 'Tytuł wymagany' });
-  db.prepare('INSERT INTO items (group_id, type, title, content) VALUES (?, ?, ?, ?)').run(req.params.id, 'note', title.trim(), content || '');
+  if (!title?.trim()) return res.redirect(`/groups/${req.params.id}/notes`);
+  await run(
+    "INSERT INTO items (group_id, type, title, content) VALUES ($1, 'note', $2, $3)",
+    [req.params.id, title.trim(), content || '']
+  );
   res.redirect(`/groups/${req.params.id}/notes`);
 });
 
-// PUT /notes/:id - Edytuj notatkę
-router.put('/notes/:id', (req, res) => {
-  const db = getDb();
+// PUT /notes/:id
+router.put('/notes/:id', async (req, res) => {
   const { title, content } = req.body;
-  db.prepare("UPDATE items SET title = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND type = 'note'").run(title, content || '', req.params.id);
-  const item = db.prepare('SELECT group_id FROM items WHERE id = ?').get(req.params.id);
+  await run(
+    "UPDATE items SET title = $1, content = $2, updated_at = NOW() WHERE id = $3 AND type = 'note'",
+    [title, content || '', req.params.id]
+  );
+  const item = await getOne('SELECT group_id FROM items WHERE id = $1', [req.params.id]);
   res.redirect(`/groups/${item.group_id}/notes`);
 });
 
-// DELETE /notes/:id - Usuń notatkę
-router.delete('/notes/:id', (req, res) => {
-  const db = getDb();
-  const item = db.prepare('SELECT group_id FROM items WHERE id = ?').get(req.params.id);
+// DELETE /notes/:id
+router.delete('/notes/:id', async (req, res) => {
+  const item = await getOne("SELECT group_id FROM items WHERE id = $1 AND type = 'note'", [req.params.id]);
   if (item) {
-    db.prepare("DELETE FROM items WHERE id = ? AND type = 'note'").run(req.params.id);
+    await run('DELETE FROM items WHERE id = $1', [req.params.id]);
     res.redirect(`/groups/${item.group_id}/notes`);
   } else {
     res.redirect('/');
