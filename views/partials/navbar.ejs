@@ -1,0 +1,8 @@
+<!-- partials/navbar.ejs - Breadcrumb dla stron grup -->
+<div class="flex items-center gap-2 text-sm text-gray-500 mb-4">
+  <a href="/" class="hover:text-blue-600 dark:hover:text-blue-400">Grupy</a>
+  <% if (typeof group !== 'undefined' && group) { %>
+    <span>/</span>
+    <span class="text-gray-800 dark:text-gray-200 font-medium"><%= group.name %></span>
+  <% } %>
+</div>

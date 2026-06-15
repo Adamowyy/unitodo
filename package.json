@@ -1,0 +1,46 @@
+{
+  "name": "unitodo",
+  "version": "1.0.0",
+  "description": "UniTodo — desktopowa aplikacja z grupami, notatkami i zadaniami",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "build": "electron-builder",
+    "server": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.6.0",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.unitodo.desktop",
+    "productName": "UniTodo",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron-main.js",
+      "server.js",
+      "routes/**/*",
+      "views/**/*",
+      "db/**/*",
+      "public/**/*",
+      "package.json",
+      ".env"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

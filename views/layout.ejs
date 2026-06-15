@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            p1: { bg: '#f9fafb', border: '#e5e7eb', text: '#6b7280' },
+            p2: { bg: '#eff6ff', border: '#bfdbfe', text: '#2563eb' },
+            p3: { bg: '#fff7ed', border: '#fdba74', text: '#ea580c' },
+            p4: { bg: '#fef2f2', border: '#fca5a5', text: '#dc2626' },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .priority-p1 { --p-bg: #f9fafb; --p-border: #e5e7eb; --p-text: #6b7280; }
+    .priority-p2 { --p-bg: #eff6ff; --p-border: #bfdbfe; --p-text: #2563eb; }
+    .priority-p3 { --p-bg: #fff7ed; --p-border: #fdba74; --p-text: #ea580c; }
+    .priority-p4 { --p-bg: #fef2f2; --p-border: #fca5a5; --p-text: #dc2626; }
+    .priority-badge { 
+      display: inline-block; 
+      width: 8px; 
+      height: 8px; 
+      border-radius: 50%; 
+      margin-right: 4px;
+    }
+    .priority-badge.p1 { background: #d1d5db; }
+    .priority-badge.p2 { background: #60a5fa; }
+    .priority-badge.p3 { background: #fb923c; }
+    .priority-badge.p4 { background: #ef4444; }
+    .task-card { transition: box-shadow 0.15s; }
+    .task-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .kanban-column { min-height: 200px; }
+    .drag-over { background-color: #f0f9ff; border: 2px dashed #3b82f6; }
+    .dark .drag-over { background-color: #1e3a5f; border-color: #60a5fa; }
+    .subtask-item { border-left: 2px solid #e5e7eb; }
+    .dark .subtask-item { border-left-color: #4b5563; }
+    .subtask-item:hover { border-left-color: #3b82f6; }
+    .dark .subtask-item:hover { border-left-color: #60a5fa; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; justify-content: center; align-items: center; }
+    .modal-overlay.active { display: flex; }
+    .modal-content { background: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+    .dark .modal-content { background: #1f2937; color: #e5e7eb; }
+    .tab-active { border-bottom: 2px solid #3b82f6; color: #2563eb; }
+    .dark .tab-active { border-bottom-color: #60a5fa; color: #60a5fa; }
+    @keyframes slideDown { from { opacity:0; transform: translateY(-10px); } to { opacity:1; transform: translateY(0); } }
+    .animate-slide { animation: slideDown 0.2s ease-out; }
+  </style>
+  <script>if (localStorage.getItem("darkMode") === "true") { document.documentElement.classList.add("dark"); }</script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+  <!-- Navbar -->
+  <nav class="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/30 border-b dark:border-gray-700">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="text-xl font-bold text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition">📋 UniTodo</a>
+      <button onclick="toggleDarkMode()" class="ml-auto text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl" title="Przełącz motyw">🌙</button>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <% if (typeof view !== 'undefined' && view === 'index') { %>
+      <%- include('partials/navbar', { groups }) %>
+      <div class="mt-6">
+        <%- include('index') %>
+      </div>
+    <% } else if (typeof view !== 'undefined' && view === 'notes') { %>
+      <%- include('partials/group-nav', { group, activeTab: 'notes' }) %>
+      <div class="mt-6">
+        <%- include('notes') %>
+      </div>
+    <% } else if (typeof view !== 'undefined' && view === 'tasks') { %>
+      <%- include('partials/group-nav', { group, activeTab: 'tasks' }) %>
+      <div class="mt-6">
+        <%- include('tasks') %>
+      </div>
+    <% } else { %>
+      <%- body %>
+    <% } %>
+  </main>
+
+  <script>
+function toggleDarkMode() {
+  const html = document.documentElement;
+  html.classList.toggle("dark");
+  localStorage.setItem("darkMode", html.classList.contains("dark"));
+}
+</script>
+  <script src="/app.js"></script>
+</body>
+</html>

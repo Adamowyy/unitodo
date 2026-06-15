@@ -1,0 +1,37 @@
+<!-- partials/group-nav.ejs - Nawigacja wewnątrz grupy -->
+<div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <% if (group.description) { %>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><%= group.description %></p>
+      <% } %>
+    </div>
+    <div class="flex gap-2">
+      <form method="POST" action="/groups/<%= group.id %>?_method=DELETE" onsubmit="return confirm('Usunąć grupę wraz ze wszystkimi danymi?')" class="inline">
+        <input type="hidden" name="_method" value="DELETE">
+        <button type="submit" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg transition">
+          🗑️ Usuń
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Search bar -->
+  <form method="GET" action="" class="mt-3">
+    <div class="relative">
+      <input type="text" name="q" value="<%= typeof query !== 'undefined' ? query : '' %>" placeholder="Szukaj..."
+        class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 outline-none">
+      <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    </div>
+  </form>
+
+  <!-- Zakładki -->
+  <div class="flex gap-6 mt-4 border-b border-gray-200 dark:border-gray-700">
+    <a href="/groups/<%= group.id %>/notes" class="pb-3 text-sm font-medium <%= activeTab === 'notes' ? 'tab-active text-blue-700 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' %> transition">
+      📝 Notatki
+    </a>
+    <a href="/groups/<%= group.id %>/tasks" class="pb-3 text-sm font-medium <%= activeTab === 'tasks' ? 'tab-active text-blue-700 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' %> transition">
+      ✅ Zadania
+    </a>
+  </div>
+</div>
