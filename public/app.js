@@ -16,14 +16,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // Method override przez formularze z _method
   document.addEventListener('submit', function(e) {
     const form = e.target;
+    
+    // data-confirm works for ALL forms (not just _method)
+    const confirmMsg = form.getAttribute('data-confirm');
+    if (confirmMsg && !confirm(confirmMsg)) {
+      e.preventDefault();
+      return;
+    }
+    
     const methodInput = form.querySelector('input[name="_method"]');
     if (methodInput && methodInput.value !== 'POST') {
       e.preventDefault();
-      
-      // Check for data-confirm attribute
-      const confirmMsg = form.getAttribute('data-confirm');
-      if (confirmMsg && !confirm(confirmMsg)) return;
-      
       const method = methodInput.value;
       const action = form.action;
       const formData = new FormData(form);
