@@ -29,11 +29,9 @@
     <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Kod zaproszenia:</p>
       <div class="flex items-center gap-2">
-        <code class="text-sm bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded text-gray-800 dark:text-gray-200 flex-1 break-all"><%= group.invite_code %></code>
-        <button onclick="navigator.clipboard.writeText('<%= group.invite_code %>')" class="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0">Kopiuj</button>
-        <form method="POST" action="/groups/<%= group.id %>/invite" class="inline shrink-0">
-          <button type="submit" class="text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400" title="Wygeneruj nowy kod">🔄</button>
-        </form>
+        <code id="inviteCode" class="text-sm bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded text-gray-800 dark:text-gray-200 flex-1 break-all"><%= group.invite_code %></code>
+        <button onclick="copyInviteCode()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0">Kopiuj</button>
+        <button onclick="generateInviteCode(<%= group.id %>)" class="text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 shrink-0" title="Wygeneruj nowy kod">🔄</button>
       </div>
     </div>
   <% } %>

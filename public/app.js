@@ -54,6 +54,27 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('active');
 }
 
+// --- Invite code ---
+async function generateInviteCode(groupId) {
+  try {
+    const resp = await fetch(`/groups/${groupId}/invite`, { method: 'POST' });
+    const data = await resp.json();
+    const el = document.getElementById('inviteCode');
+    if (el && data.invite_code) {
+      el.textContent = data.invite_code;
+    }
+  } catch (e) {
+    console.error('Failed to generate invite code', e);
+  }
+}
+
+function copyInviteCode() {
+  const el = document.getElementById('inviteCode');
+  if (el) {
+    navigator.clipboard.writeText(el.textContent);
+  }
+}
+
 // --- Live Sync ---
 let pollTimer = null;
 let pageLoadTime = new Date().toISOString();
