@@ -17,7 +17,6 @@ router.get('/groups/:id/tasks', async (req, res) => {
   const filterStatus = req.query.filter_status || '';
   const hideDone = req.query.hide_done === '1';
 
-  // Build sort
   let orderClause;
   switch (sort) {
     case 'priority_desc': orderClause = 'priority DESC, created_at DESC'; break;
@@ -29,7 +28,6 @@ router.get('/groups/:id/tasks', async (req, res) => {
     default: orderClause = 'created_at DESC';
   }
 
-  // Build conditions
   const conditions = ["group_id = $1", "type = 'task'"];
   const params = [req.params.id];
   let paramIdx = 2;
@@ -63,7 +61,6 @@ router.get('/groups/:id/tasks', async (req, res) => {
   const inProgressTasks = rootTasks.filter(t => t.status === 'in_progress');
   const doneTasks = rootTasks.filter(t => t.status === 'done' || t.is_completed);
 
-  // Get members for invite UI
   const members = await getAll(
     'SELECT u.id, u.username, gm.role FROM users u JOIN group_members gm ON gm.user_id = u.id WHERE gm.group_id = $1 ORDER BY gm.role, u.username',
     [req.params.id]
@@ -140,11 +137,15 @@ router.put('/tasks/:id/toggle', async (req, res) => {
   res.json({ success: true, is_completed: newCompleted });
 });
 
-// PUT /tasks/:id/move
+// PUT /tasks/:id/move — Zmień status zadania (drag & drop) + auto-assign
 router.put('/tasks/:id/move', async (req, res) => {
   const { status } = req.body;
   if (!['todo', 'in_progress', 'done'].includes(status)) return res.json({ error: 'Invalid status' });
-  await run('UPDATE items SET status = $1, updated_at = NOW() WHERE id = $2', [status, req.params.id]);
+  if (status === 'in_progress' || status === 'done') {
+    await run('UPDATE items SET status = $1, assigned_to = $2, updated_at = NOW() WHERE id = $3', [status, req.user.id, req.params.id]);
+  } else {
+    await run('UPDATE items SET status = $1, updated_at = NOW() WHERE id = $2', [status, req.params.id]);
+  }
   res.json({ success: true });
 });
 
