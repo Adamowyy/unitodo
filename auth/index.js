@@ -20,6 +20,7 @@ async function requireAuth(req, res, next) {
     const user = await getOne('SELECT id, username FROM users WHERE id = $1', [decoded.userId]);
     if (!user) throw new Error('User not found');
     req.user = user;
+    res.locals.user = user;
     next();
   } catch (err) {
     if (req.headers.accept?.includes('application/json')) {
