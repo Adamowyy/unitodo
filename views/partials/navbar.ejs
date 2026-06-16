@@ -1,10 +1,12 @@
 <!-- partials/navbar.ejs - Breadcrumb dla stron grup -->
-<div class="flex items-center gap-2 text-sm text-gray-500 mb-4">
-  <a href="/" class="hover:text-blue-600 dark:hover:text-blue-400">Grupy</a>
+<div class="text-sm text-gray-500 mb-4">
   <% if (typeof group !== 'undefined' && group) { %>
-    <span>/</span>
-    <span class="text-gray-800 dark:text-gray-200 font-medium"><%= group.name %></span>
+    <div class="flex items-center gap-2">
+      <a href="/" class="hover:text-blue-600 dark:hover:text-blue-400">Grupy</a>
+      <span>/</span>
+      <span class="text-gray-800 dark:text-gray-200 font-medium"><%= group.name %></span>
+    </div>
   <% } else { %>
-    <span class="text-gray-400 dark:text-gray-500 ml-2">— UniTodo: aplikacja do zarządzania zadaniami, do pracy solo i w grupie</span>
+    <span class="text-gray-400 dark:text-gray-500">Aplikacja do zarządzania zadaniami, do pracy solo i w grupie</span>
   <% } %>
 </div>
