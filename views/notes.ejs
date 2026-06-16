@@ -19,7 +19,7 @@
     <p class="text-sm mt-1">Kliknij "Nowa notatka", aby dodać pierwszą</p>
   </div>
 <% } else { %>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
     <% notes.forEach(note => { 
       const noteComments = typeof commentsByNote !== 'undefined' ? (commentsByNote[note.id] || []) : [];
     %>
@@ -52,9 +52,13 @@
         <!-- Comments section -->
         <div class="mt-auto pt-3 border-t border-gray-100 dark:border-gray-700">
           <% noteComments.forEach(c => { %>
-            <div class="flex gap-2 mb-2 text-sm">
+            <div class="flex gap-2 mb-2 text-sm group">
               <span class="text-xs font-medium text-gray-500 dark:text-gray-400 shrink-0"><%= c.author || '?' %></span>
-              <span class="text-gray-600 dark:text-gray-300"><%= c.content %></span>
+              <span class="text-gray-600 dark:text-gray-300 flex-1"><%= c.content %></span>
+              <form method="POST" action="/comments/<%= c.id %>?_method=DELETE" data-confirm="Usunąć komentarz?" class="inline shrink-0 opacity-0 group-hover:opacity-100">
+                <input type="hidden" name="_method" value="DELETE">
+                <button type="submit" class="text-gray-300 dark:text-gray-500 hover:text-red-500 text-xs">&times;</button>
+              </form>
             </div>
           <% }) %>
           <form method="POST" action="/notes/<%= note.id %>/comments" class="flex gap-2 mt-2">

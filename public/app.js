@@ -80,6 +80,17 @@ function moveTask(taskId, newStatus) {
     .catch(() => location.reload());
 }
 
+// --- Emoji reactions ---
+function reactToTask(taskId, emoji) {
+  fetch('/tasks/' + taskId + '/react', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'emoji=' + encodeURIComponent(emoji)
+  }).then(r => r.json())
+    .then(data => { if (data.success) location.reload(); })
+    .catch(() => location.reload());
+}
+
 // --- Live Sync ---
 var pollTimer = null;
 var pageLoadTime = new Date().toISOString();

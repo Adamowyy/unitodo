@@ -66,6 +66,20 @@ router.get('/groups/:id/tasks', async (req, res) => {
     [req.params.id]
   );
 
+  // Fetch reactions for all root tasks
+  const allTaskIds = rootTasks.map(t => t.id);
+  let reactionsByTask = {};
+  if (allTaskIds.length > 0) {
+    const allReactions = await getAll(
+      'SELECT item_id, emoji, COUNT(*) as count FROM reactions WHERE item_id = ANY($1) GROUP BY item_id, emoji',
+      [allTaskIds]
+    );
+    allReactions.forEach(r => {
+      if (!reactionsByTask[r.item_id]) reactionsByTask[r.item_id] = [];
+      reactionsByTask[r.item_id].push({ emoji: r.emoji, count: parseInt(r.count) });
+    });
+  }
+
   res.render('layout', {
     title: `Zadania — ${group.name}`,
     group,
@@ -74,6 +88,7 @@ router.get('/groups/:id/tasks', async (req, res) => {
     inProgressTasks,
     doneTasks,
     subtasksByParent,
+    reactionsByTask,
     query,
     sort,
     filter_priority: filterPriority,
@@ -158,6 +173,33 @@ router.put('/subtasks/:id', async (req, res) => {
   await run('UPDATE items SET title = $1, updated_at = NOW() WHERE id = $2', [title.trim(), req.params.id]);
   const parent = await getOne('SELECT group_id FROM items WHERE id = $1', [item.parent_id]);
   res.redirect(`/groups/${parent.group_id}/tasks`);
+});
+
+// POST /tasks/:id/react — Toggle reaction
+router.post('/tasks/:id/react', async (req, res) => {
+  const { emoji } = req.body;
+  if (!emoji) return res.json({ success: false });
+  
+  const existing = await getOne(
+    'SELECT id FROM reactions WHERE user_id = $1 AND item_id = $2 AND emoji = $3',
+    [req.user.id, req.params.id, emoji]
+  );
+  
+  if (existing) {
+    await run('DELETE FROM reactions WHERE id = $1', [existing.id]);
+  } else {
+    await run(
+      'INSERT INTO reactions (user_id, item_id, emoji) VALUES ($1, $2, $3)',
+      [req.user.id, req.params.id, emoji]
+    );
+  }
+  
+  // Return updated reaction counts
+  const counts = await getAll(
+    'SELECT emoji, COUNT(*) as count FROM reactions WHERE item_id = $1 GROUP BY emoji',
+    [req.params.id]
+  );
+  res.json({ success: true, reactions: counts });
 });
 
 module.exports = router;

@@ -98,6 +98,17 @@ router.post('/notes/:id/comments', async (req, res) => {
   }
 });
 
+// DELETE /comments/:id — Delete comment
+router.delete('/comments/:id', async (req, res) => {
+  const comment = await getOne("SELECT i.*, i.group_id FROM items i WHERE i.id = $1 AND i.type = 'comment'", [req.params.id]);
+  if (comment) {
+    await run('DELETE FROM items WHERE id = $1', [req.params.id]);
+    res.redirect('/groups/' + comment.group_id + '/notes');
+  } else {
+    res.redirect('/');
+  }
+});
+
 // PUT /notes/:id
 router.put('/notes/:id', async (req, res) => {
   const { title, content } = req.body;
