@@ -56,8 +56,16 @@ function joinGroup(e) {
     const catId = 'cat-' + catIdx;
   %>
     <!-- Category section -->
-    <div class="mb-6">
-      <div class="flex items-center gap-2 mb-3 cursor-pointer select-none" onclick="toggleCategory('<%= catId %>')">
+    <div class="mb-6 category-section" data-category="<%= cat %>">
+      <div class="flex items-center gap-2 mb-3 select-none"
+           draggable="true"
+           ondragstart="onCategoryDragStart(event)"
+           ondragover="onCategoryDragOver(event)"
+           ondragleave="onCategoryDragLeave(event)"
+           ondrop="onCategoryDrop(event)"
+           onclick="toggleCategory('<%= catId %>')"
+           style="cursor:grab">
+        <span class="text-gray-300 dark:text-gray-600 text-xs cursor-grab">⠿</span>
         <span id="<%= catId %>-arrow" class="text-xs text-gray-400 transition-transform inline-block">▼</span>
         <h2 class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide"><%= cat %></h2>
         <span class="text-xs text-gray-400">(<%= catGroups.length %>)</span>
@@ -67,7 +75,12 @@ function joinGroup(e) {
           <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700 dark:hover:shadow-gray-900/30 flex flex-col">
             <div class="flex justify-between items-start">
               <div class="flex-1 min-w-0">
-                <h2 class="font-semibold text-gray-800 text-lg truncate dark:text-gray-200"><%= group.name %></h2>
+                <div class="flex items-center gap-2">
+                  <% if ((group.member_count || 1) > 1) { %>
+                    <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0">👥 <%= group.member_count %></span>
+                  <% } %>
+                  <h2 class="font-semibold text-gray-800 text-lg truncate dark:text-gray-200"><%= group.name %></h2>
+                </div>
                 <% if (group.description) { %>
                   <p class="text-gray-500 text-sm mt-1 truncate dark:text-gray-400"><%= group.description %></p>
                 <% } %>
@@ -91,9 +104,6 @@ function joinGroup(e) {
                 </form>
                 <% } %>
               </div>
-            </div>
-            <div class="flex items-center gap-3 mt-3 text-xs text-gray-400 dark:text-gray-500">
-              <span>👥 <%= group.member_count || 1 %></span>
             </div>
             <div class="mt-auto pt-3 flex gap-2">
               <a href="/groups/<%= group.id %>/notes" class="flex-1 text-center text-sm bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-700 py-2 rounded-lg border border-gray-200 transition dark:bg-gray-900 dark:hover:bg-blue-900/30 dark:text-gray-300 dark:hover:text-blue-400 dark:border-gray-700">
@@ -186,6 +196,7 @@ function toggleCategory(catId) {
 
 // Restore category state from localStorage
 document.addEventListener('DOMContentLoaded', function() {
+  // Restore collapse state
   document.querySelectorAll('[id$="-arrow"]').forEach(function(arrow) {
     var catId = arrow.id.replace('-arrow', '');
     var state = localStorage.getItem(catId);
@@ -195,7 +206,74 @@ document.addEventListener('DOMContentLoaded', function() {
       arrow.style.transform = 'rotate(-90deg)';
     }
   });
+  
+  // Restore category order
+  var savedOrder = localStorage.getItem('categoryOrder');
+  if (savedOrder) {
+    var order = JSON.parse(savedOrder);
+    var container = document.querySelector('.category-section'); 
+    if (!container) return;
+    var parent = container.parentElement;
+    var sections = Array.from(parent.querySelectorAll('.category-section'));
+    // Sort sections by saved order
+    sections.sort(function(a, b) {
+      var aIdx = order.indexOf(a.getAttribute('data-category'));
+      var bIdx = order.indexOf(b.getAttribute('data-category'));
+      if (aIdx === -1) return 1;
+      if (bIdx === -1) return -1;
+      return aIdx - bIdx;
+    });
+    // Move DOM nodes
+    sections.forEach(function(s) { parent.appendChild(s); });
+  }
 });
+
+// --- Category drag & drop ---
+var draggedCategory = null;
+
+function onCategoryDragStart(e) {
+  draggedCategory = e.target.closest('.category-section');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', '');
+  draggedCategory.style.opacity = '0.5';
+}
+
+function onCategoryDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  var section = e.target.closest('.category-section');
+  if (section) section.classList.add('drag-over');
+}
+
+function onCategoryDragLeave(e) {
+  var section = e.target.closest('.category-section');
+  if (section) section.classList.remove('drag-over');
+}
+
+function onCategoryDrop(e) {
+  e.preventDefault();
+  document.querySelectorAll('.category-section').forEach(function(s) { 
+    s.classList.remove('drag-over');
+  });
+  
+  var target = e.target.closest('.category-section');
+  if (!target || !draggedCategory || target === draggedCategory) {
+    if (draggedCategory) draggedCategory.style.opacity = '';
+    draggedCategory = null;
+    return;
+  }
+  
+  // Insert before target
+  target.parentElement.insertBefore(draggedCategory, target);
+  draggedCategory.style.opacity = '';
+  
+  // Save order
+  var sections = Array.from(document.querySelectorAll('.category-section'));
+  var order = sections.map(function(s) { return s.getAttribute('data-category'); });
+  localStorage.setItem('categoryOrder', JSON.stringify(order));
+  
+  draggedCategory = null;
+}
 
 // Zamknij modal po kliknięciu w tło
 document.querySelectorAll('.modal-overlay').forEach(m => {
