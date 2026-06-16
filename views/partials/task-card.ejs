@@ -6,7 +6,7 @@
   const taskData = JSON.stringify({id:task.id, title:task.title, content:task.content||'', priority:task.priority, status:task.status||'todo', due_date:task.due_date||'', assigned_to:task.assigned_to||''});
   const assignee = task.assigned_to && members ? members.find(m => m.id === task.assigned_to) : null;
   const taskReactions = typeof reactionsByTask !== 'undefined' ? (reactionsByTask[task.id] || []) : [];
-  const EMOJIS = ['👍','❤️','😄','🎉','🚀','👀','💯','🔥'];
+  const EMOJIS = ['👍','❤️','😄','🎉','🚀','👀','💯','🔥','💀'];
 %>
 <div class="task-card bg-white dark:bg-gray-800 rounded-lg border <%= pBorder %> p-3 cursor-grab active:cursor-grabbing animate-slide <%= isDone ? 'opacity-60' : '' %>" 
      draggable="true" data-task-id="<%= task.id %>"
