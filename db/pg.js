@@ -6,10 +6,15 @@ let pool;
 function getPool() {
   if (!pool) {
     pool = new Pool({
-      connectionString: process.env.DATABASE_URL || process.env.DATABASE_URL_UNPOOLED,
+      connectionString: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL,
       ssl: { rejectUnauthorized: false },
       max: 5,
-      idleTimeoutMillis: 10000
+      idleTimeoutMillis: 10000,
+      connectionTimeoutMillis: 5000,
+      statement_timeout: 5000
+    });
+    pool.on('error', (err) => {
+      console.error('PG pool error:', err.message);
     });
   }
   return pool;
