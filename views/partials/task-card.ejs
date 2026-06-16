@@ -85,14 +85,28 @@
 
   <!-- Emoji reactions -->
   <div class="mt-2 flex flex-wrap items-center gap-1" onclick="event.stopPropagation()">
-    <% EMOJIS.forEach(emoji => { %>
-      <button onclick="reactToTask(<%= task.id %>, '<%= emoji %>')" draggable="false"
-        class="text-xs px-1.5 py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-        <%= emoji %>
-        <% const r = taskReactions.find(tr => tr.emoji === emoji); %>
-        <% if (r) { %><span class="text-xs text-gray-500 dark:text-gray-400 ml-0.5"><%= r.count %></span><% } %>
+    <!-- Existing reactions -->
+    <% taskReactions.forEach(r => { %>
+      <button onclick="reactToTask(<%= task.id %>, '<%= r.emoji %>')" draggable="false"
+        class="inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+        <%= r.emoji %><span class="text-gray-500 dark:text-gray-400"><%= r.count %></span>
       </button>
     <% }) %>
+    <!-- Toggle picker -->
+    <div class="relative inline-block">
+      <button onclick="toggleEmojiPicker(event, <%= task.id %>)" draggable="false"
+        class="w-6 h-6 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-600 text-xs text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+        😊
+      </button>
+      <div id="emojiPicker<%= task.id %>" class="hidden absolute bottom-full left-0 mb-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-1.5 flex gap-0.5 z-10">
+        <% EMOJIS.forEach(emoji => { %>
+          <button onclick="reactToTask(<%= task.id %>, '<%= emoji %>')" draggable="false"
+            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-sm transition">
+            <%= emoji %>
+          </button>
+        <% }) %>
+      </div>
+    </div>
   </div>
 
   <!-- Mobile move buttons -->

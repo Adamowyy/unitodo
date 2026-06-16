@@ -91,6 +91,24 @@ function reactToTask(taskId, emoji) {
     .catch(() => location.reload());
 }
 
+function toggleEmojiPicker(e, taskId) {
+  e.stopPropagation();
+  var picker = document.getElementById('emojiPicker' + taskId);
+  if (picker) picker.classList.toggle('hidden');
+  
+  // Close other open pickers
+  document.querySelectorAll('[id^="emojiPicker"]').forEach(function(p) {
+    if (p.id !== 'emojiPicker' + taskId) p.classList.add('hidden');
+  });
+}
+
+// Close pickers on outside click
+document.addEventListener('click', function() {
+  document.querySelectorAll('[id^="emojiPicker"]').forEach(function(p) {
+    p.classList.add('hidden');
+  });
+});
+
 // --- Live Sync ---
 var pollTimer = null;
 var pageLoadTime = new Date().toISOString();
