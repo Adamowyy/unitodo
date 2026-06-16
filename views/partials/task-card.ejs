@@ -95,13 +95,13 @@
     <!-- Toggle picker -->
     <div class="relative inline-block">
       <button onclick="toggleEmojiPicker(event, <%= task.id %>)" draggable="false"
-        class="w-6 h-6 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-600 text-xs text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-        😊
+        class="w-6 h-6 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-600 text-xs text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition leading-none">
+        👍
       </button>
       <div id="emojiPicker<%= task.id %>" class="hidden absolute bottom-full left-0 mb-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-1.5 flex gap-0.5 z-10">
         <% EMOJIS.forEach(emoji => { %>
           <button onclick="reactToTask(<%= task.id %>, '<%= emoji %>')" draggable="false"
-            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-sm transition">
+            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-sm transition leading-none">
             <%= emoji %>
           </button>
         <% }) %>
