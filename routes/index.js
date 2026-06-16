@@ -6,7 +6,10 @@ const { getAll, getOne, run } = require('../db/pg');
 router.get('/', async (req, res) => {
   const groups = await getAll(
     `SELECT g.*, gm.role,
-      (SELECT COUNT(*) FROM group_members gm2 WHERE gm2.group_id = g.id) as member_count
+      (SELECT COUNT(*) FROM group_members gm2 WHERE gm2.group_id = g.id) as member_count,
+      (SELECT COUNT(*) FROM items WHERE group_id = g.id AND type = 'note') as note_count,
+      (SELECT COUNT(*) FROM items WHERE group_id = g.id AND type = 'task' AND status = 'todo') as todo_count,
+      (SELECT COUNT(*) FROM items WHERE group_id = g.id AND type = 'task' AND status = 'in_progress') as in_progress_count
      FROM groups g 
      JOIN group_members gm ON gm.group_id = g.id 
      WHERE gm.user_id = $1 
