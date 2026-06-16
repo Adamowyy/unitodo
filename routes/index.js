@@ -5,22 +5,34 @@ const { getAll, getOne, run } = require('../db/pg');
 // GET / — Dashboard
 router.get('/', async (req, res) => {
   const groups = await getAll(
-    `SELECT g.*, gm.role FROM groups g 
+    `SELECT g.*, gm.role,
+      (SELECT COUNT(*) FROM group_members gm2 WHERE gm2.group_id = g.id) as member_count
+     FROM groups g 
      JOIN group_members gm ON gm.group_id = g.id 
      WHERE gm.user_id = $1 
-     ORDER BY g.created_at DESC`,
+     ORDER BY g.category, g.created_at DESC`,
     [req.user.id]
   );
+  
+  // Group by category
+  const categories = {};
+  groups.forEach(g => {
+    const cat = g.category || 'Bez kategorii';
+    if (!categories[cat]) categories[cat] = [];
+    categories[cat].push(g);
+  });
+  
   res.render('layout', {
     title: 'UniTodo',
     view: 'index',
+    categories,
     groups
   });
 });
 
 // POST /groups — Create
 router.post('/groups', async (req, res) => {
-  const { name, description } = req.body;
+  const { name, description, category } = req.body;
   if (!name?.trim()) {
     const groups = await getAll(
       'SELECT g.*, gm.role FROM groups g JOIN group_members gm ON gm.group_id = g.id WHERE gm.user_id = $1 ORDER BY g.created_at DESC',
@@ -29,8 +41,8 @@ router.post('/groups', async (req, res) => {
     return res.render('layout', { title: 'UniTodo', view: 'index', groups, error: 'Nazwa grupy jest wymagana' });
   }
   const result = await run(
-    'INSERT INTO groups (name, description, owner_id) VALUES ($1, $2, $3) RETURNING id',
-    [name.trim(), description || '', req.user.id]
+    'INSERT INTO groups (name, description, owner_id, category) VALUES ($1, $2, $3, $4) RETURNING id',
+    [name.trim(), description || '', req.user.id, (category || '').trim()]
   );
   const groupId = result.rows[0].id;
   await run('INSERT INTO group_members (group_id, user_id, role) VALUES ($1, $2, $3)', [groupId, req.user.id, 'owner']);
@@ -45,9 +57,9 @@ router.put('/groups/:id', async (req, res) => {
   );
   if (!membership || membership.role !== 'owner') return res.redirect('/');
 
-  const { name, description } = req.body;
+  const { name, description, category } = req.body;
   if (!name?.trim()) return res.redirect('/');
-  await run('UPDATE groups SET name = $1, description = $2 WHERE id = $3', [name, description || '', req.params.id]);
+  await run('UPDATE groups SET name = $1, description = $2, category = $3 WHERE id = $4', [name.trim(), description || '', (category || '').trim(), req.params.id]);
   res.redirect('/');
 });
 
