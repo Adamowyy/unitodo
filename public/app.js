@@ -48,7 +48,21 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   initLiveSync();
+  
+  // Make URLs clickable in task/note content
+  document.querySelectorAll('.task-card .line-clamp-2, .notes-content, .comment-text').forEach(function(el) {
+    linkifyElement(el);
+  });
 });
+
+// --- Linkify ---
+function linkifyElement(el) {
+  var html = el.innerHTML;
+  var urlRegex = /(https?:\/\/[^\s<]+)/g;
+  if (urlRegex.test(html)) {
+    el.innerHTML = html.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener" class="text-blue-500 hover:text-blue-400 underline" onclick="event.stopPropagation()">$1</a>');
+  }
+}
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('active');

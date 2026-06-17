@@ -175,6 +175,18 @@ router.put('/subtasks/:id', async (req, res) => {
   res.redirect(`/groups/${parent.group_id}/tasks`);
 });
 
+// DELETE /subtasks/:id
+router.delete('/subtasks/:id', async (req, res) => {
+  const item = await getOne('SELECT * FROM items WHERE id = $1 AND parent_id IS NOT NULL', [req.params.id]);
+  if (item) {
+    await run('DELETE FROM items WHERE id = $1', [req.params.id]);
+    const parent = await getOne('SELECT group_id FROM items WHERE id = $1', [item.parent_id]);
+    res.redirect(`/groups/${parent.group_id}/tasks`);
+  } else {
+    res.redirect('/');
+  }
+});
+
 // POST /tasks/:id/react — Toggle reaction
 router.post('/tasks/:id/react', async (req, res) => {
   const { emoji } = req.body;

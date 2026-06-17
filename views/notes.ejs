@@ -39,7 +39,7 @@
           </div>
         </div>
         <% if (note.content) { %>
-          <p class="text-gray-600 text-sm whitespace-pre-wrap dark:text-gray-300"><%= note.content %></p>
+          <p class="text-gray-600 text-sm whitespace-pre-wrap dark:text-gray-300 notes-content"><%= note.content %></p>
         <% } %>
         <div class="flex items-center gap-2 text-xs text-gray-400 mt-3 dark:text-gray-500">
           <% if (note.author) { %>
@@ -54,7 +54,7 @@
           <% noteComments.forEach(c => { %>
             <div class="flex gap-2 mb-2 text-sm group">
               <span class="text-xs font-medium text-gray-500 dark:text-gray-400 shrink-0"><%= c.author || '?' %></span>
-              <span class="text-gray-600 dark:text-gray-300 flex-1"><%= c.content %></span>
+              <span class="text-gray-600 dark:text-gray-300 flex-1 comment-text"><%= c.content %></span>
               <form method="POST" action="/comments/<%= c.id %>?_method=DELETE" data-confirm="Usunąć komentarz?" class="inline shrink-0">
                 <input type="hidden" name="_method" value="DELETE">
                 <button type="submit" class="text-gray-400 dark:text-gray-500 hover:text-red-500 text-xs px-1" title="Usuń komentarz">&times;</button>
