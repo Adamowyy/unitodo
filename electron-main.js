@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, shell } = require('electron');
 
 const URL = (process.env.UNITODO_URL || 'https://example.com') + '?from=app';
 
@@ -20,6 +20,19 @@ function createWindow() {
   });
 
   mainWindow.loadURL(URL);
+
+  // Open external links in default browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url !== URL && !url.startsWith(URL)) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
