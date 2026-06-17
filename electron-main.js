@@ -21,17 +21,10 @@ function createWindow() {
 
   mainWindow.loadURL(URL);
 
-  // Open external links in default browser
+  // Open external links in default browser (target="_blank" only)
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: 'deny' };
-  });
-
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (url !== URL && !url.startsWith(URL)) {
-      event.preventDefault();
-      shell.openExternal(url);
-    }
   });
 
   mainWindow.once('ready-to-show', () => {
