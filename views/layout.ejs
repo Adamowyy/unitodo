@@ -115,6 +115,15 @@
     <% } %>
   </main>
 
+  <footer class="border-t border-gray-200 dark:border-gray-800 mt-12 py-6">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400 dark:text-gray-500">
+      <span>© <%= new Date().getFullYear() %> UniTodo</span>
+      <div class="flex gap-4">
+        <a href="/privacy" class="hover:text-gray-600 dark:hover:text-gray-300 transition">Polityka prywatności</a>
+      </div>
+    </div>
+  </footer>
+
   <script>
 function toggleDarkMode() {
   const html = document.documentElement;
