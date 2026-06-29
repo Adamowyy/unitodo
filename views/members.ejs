@@ -31,7 +31,7 @@
       <div class="flex items-center gap-2">
         <code id="inviteCode" class="text-sm bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded text-gray-800 dark:text-gray-200 flex-1 break-all"><%= group.invite_code %></code>
         <button onclick="copyInviteCode()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0">Kopiuj</button>
-        <button onclick="generateInviteCode(<%= group.id %>)" class="text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 shrink-0" title="Wygeneruj nowy kod">🔄</button>
+        <button onclick="generateInviteCode(<%= group.id %>)" class="text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 shrink-0 inline-flex items-center gap-1" title="Wygeneruj nowy kod"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Nowy kod</button>
       </div>
     </div>
   <% } %>

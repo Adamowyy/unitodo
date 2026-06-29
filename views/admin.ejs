@@ -1,5 +1,5 @@
 <div class="max-w-4xl mx-auto">
-  <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">🛡️ Panel administratora</h1>
+  <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 inline-flex items-center gap-2"><svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>Panel administratora</h1>
 
   <% if (typeof error !== 'undefined' && error) { %>
     <div class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg mb-4 text-sm"><%= error %></div>
@@ -9,7 +9,7 @@
   <% } %>
   <% if (typeof resetPassword !== 'undefined' && resetPassword) { %>
     <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded-lg mb-4 text-sm">
-      🔑 Nowe hasło dla użytkownika #<%= resetUser %>: <code class="font-bold bg-yellow-100 dark:bg-yellow-800 px-2 py-0.5 rounded"><%= resetPassword %></code>
+      <svg class="w-4 h-4 inline mr-1 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg>Nowe hasło dla użytkownika #<%= resetUser %>: <code class="font-bold bg-yellow-100 dark:bg-yellow-800 px-2 py-0.5 rounded"><%= resetPassword %></code>
       <br><span class="text-xs">Skopiuj je — nie będzie ponownie widoczne.</span>
     </div>
   <% } %>
@@ -66,10 +66,10 @@
               <td class="py-2 text-gray-500 dark:text-gray-400 text-xs"><%= new Date(u.created_at).toLocaleString('pl-PL') %></td>
               <td class="py-2 text-right">
                 <form method="POST" action="/admin/users/<%= u.id %>/reset-password" class="inline" data-confirm="Zresetować hasło użytkownika <%= u.username %>?')">
-                  <button class="text-xs text-yellow-600 dark:text-yellow-400 hover:underline mr-2">🔑 Reset hasła</button>
+                  <button class="text-xs text-yellow-600 dark:text-yellow-400 hover:underline mr-2 inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg>Reset hasła</button>
                 </form>
                 <form method="POST" action="/admin/users/<%= u.id %>/delete" class="inline" data-confirm="USUNĄĆ użytkownika <%= u.username %> i wszystkie jego dane? Tej operacji nie można cofnąć!')">
-                  <button class="text-xs text-red-500 dark:text-red-400 hover:underline">🗑️ Usuń</button>
+                  <button class="text-xs text-red-500 dark:text-red-400 hover:underline inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Usuń</button>
                 </form>
               </td>
             </tr>

@@ -37,9 +37,9 @@
       <select name="filter_priority" onchange="applyFilters(null, this.value, null)"
         class="text-xs px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">
         <option value="0" <%= !filter_priority || filter_priority == 0 ? 'selected' : '' %>>Wszystkie</option>
-        <option value="2" <%= filter_priority == 2 ? 'selected' : '' %>>🔵 Niski</option>
-        <option value="3" <%= filter_priority == 3 ? 'selected' : '' %>>🟠 Średni</option>
-        <option value="4" <%= filter_priority == 4 ? 'selected' : '' %>>🔴 Wysoki</option>
+        <option value="2" <%= filter_priority == 2 ? 'selected' : '' %>>Niski</option>
+        <option value="3" <%= filter_priority == 3 ? 'selected' : '' %>>Średni</option>
+        <option value="4" <%= filter_priority == 4 ? 'selected' : '' %>>Wysoki</option>
       </select>
     </div>
 
@@ -169,10 +169,10 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Priorytet</label>
         <select name="priority" id="taskPriority"
           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none dark:bg-gray-700 dark:text-gray-200">
-          <option value="1">🔘 Brak</option>
-          <option value="2">🔵 Niski</option>
-          <option value="3">🟠 Średni</option>
-          <option value="4">🔴 Wysoki</option>
+          <option value="1">Brak</option>
+          <option value="2">Niski</option>
+          <option value="3">Średni</option>
+          <option value="4">Wysoki</option>
         </select>
       </div>
       <div class="mb-4">
