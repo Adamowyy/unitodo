@@ -8,7 +8,7 @@
   const taskReactions = typeof reactionsByTask !== 'undefined' ? (reactionsByTask[task.id] || []) : [];
   const EMOJIS = ['👍','❤️','😄','🎉','🚀','👀','💯','🔥','💀'];
 %>
-<div class="task-card bg-white dark:bg-gray-800 rounded-lg border <%= pBorder %> p-3 cursor-grab active:cursor-grabbing animate-slide <%= isDone ? 'opacity-60' : '' %>" 
+<div class="task-card bg-white dark:bg-gray-800 rounded-lg border <%= pBorder %> p-3 cursor-grab active:cursor-grabbing animate-slide <%= isDone ? 'opacity-40' : '' %>" 
      draggable="true" data-task-id="<%= task.id %>"
      ondragstart="onDragStart(event)"
      style="<%= task.priority >= 2 ? 'border-left-width:4px' : '' %>">
