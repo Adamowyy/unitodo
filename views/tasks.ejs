@@ -121,18 +121,23 @@
     <% if (!filter_status || filter_status === 'done') { %>
       <% if (!hideDone) { %>
       <% const doneColSpan = filter_status ? 'md:col-span-3' : ''; %>
+      <% const CHUNK = 10; %>
     <div class="bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 <%= doneColSpan %>">
       <div class="flex items-center gap-2 mb-4">
         <span class="w-3 h-3 rounded-full bg-green-500"></span>
         <h3 class="font-semibold text-gray-700 dark:text-gray-300">Zrobione</h3>
         <span class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full"><%= doneTasks.length %></span>
       </div>
-      <div class="kanban-column space-y-3" data-status="done"
+      <div class="space-y-3" data-status="done"
         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <div class="kanban-column space-y-3">
+        <% let hiddenChunks = 0; %>
         <% doneTasks.forEach((task, i) => { %>
           <%- include('partials/task-card', { task, subtasks: subtasksByParent[task.id] || [], group, hideDone, members }) %>
           <% if (i === 2 && doneTasks.length > 3) { %>
-            </div><div id="done-hidden" class="hidden kanban-column space-y-3">
+            </div><div id="done-hidden" class="hidden"><div class="done-chunk kanban-column space-y-3"><% hiddenChunks = 1; %>
+          <% } else if (i > 3 && (i - 3) % CHUNK === 0 && i !== 3 && doneTasks.length > 3) { %>
+            </div><div class="done-chunk hidden kanban-column space-y-3"><% hiddenChunks++; %>
           <% } %>
         <% }) %>
         <% if (doneTasks.length === 0) { %>
@@ -141,10 +146,13 @@
             <span class="md:hidden">Brak zadań</span>
           </div>
         <% } %>
+        </div>
       </div>
       <% if (doneTasks.length > 3) { %>
-        <button onclick="toggleDoneHidden(this)" data-more="Pokaż wszystkie (<%= doneTasks.length - 3 %> więcej)" class="mt-3 w-full text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition py-1.5 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-          Pokaż wszystkie (<%= doneTasks.length - 3 %> więcej)
+        <% const remaining = doneTasks.length - 3; %>
+        <% const nextBatch = Math.min(CHUNK, remaining); %>
+        <button onclick="revealDoneChunk(this)" data-remaining="<%= remaining %>" data-total="<%= remaining %>" data-chunk="<%= CHUNK %>" class="mt-3 w-full text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition py-1.5 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
+          Pokaż kolejne (<%= nextBatch %> z <%= remaining %>)
         </button>
       <% } %>
     </div>
@@ -396,10 +404,51 @@ function saveFilters(params) {
 </script>
 
 <script>
-function toggleDoneHidden(btn) {
-  var hidden = document.getElementById('done-hidden');
-  if (!hidden) return;
-  var expanded = hidden.classList.toggle('hidden');
-  btn.textContent = expanded ? btn.dataset.more : 'Ukryj';
+function revealDoneChunk(btn) {
+  var container = document.getElementById('done-hidden');
+  if (!container) return;
+
+  var remaining = parseInt(btn.dataset.remaining) || 0;
+  var chunkSize = parseInt(btn.dataset.chunk) || 10;
+
+  // First click: reveal the hidden container
+  if (container.classList.contains('hidden')) {
+    container.classList.remove('hidden');
+    // First chunk inside is already visible, remaining decreases by chunkSize
+    remaining -= chunkSize;
+  } else {
+    // Find next hidden chunk
+    var nextChunk = container.querySelector('.done-chunk.hidden');
+    if (nextChunk) {
+      nextChunk.classList.remove('hidden');
+      remaining -= chunkSize;
+    }
+  }
+
+  btn.dataset.remaining = remaining;
+
+  if (remaining <= 0) {
+    btn.textContent = 'Ukryj';
+    btn.onclick = function() { collapseDone(btn); };
+  } else {
+    var next = Math.min(chunkSize, remaining);
+    btn.textContent = 'Poka\u017C kolejne (' + next + ' z ' + remaining + ')';
+  }
+}
+
+function collapseDone(btn) {
+  var container = document.getElementById('done-hidden');
+  if (!container) return;
+  container.classList.add('hidden');
+  // Re-hide all chunks except first
+  var allChunks = container.querySelectorAll('.done-chunk');
+  allChunks.forEach(function(c, i) {
+    if (i > 0) c.classList.add('hidden');
+  });
+  var total = parseInt(btn.dataset.total) || parseInt(btn.dataset.chunk) || 10;
+  var chunkSize = parseInt(btn.dataset.chunk) || 10;
+  btn.dataset.remaining = total;
+  btn.textContent = 'Poka\u017C kolejne (' + Math.min(chunkSize, total) + ' z ' + total + ')';
+  btn.onclick = function() { revealDoneChunk(btn); };
 }
 </script>
