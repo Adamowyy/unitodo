@@ -81,16 +81,6 @@
     </div>
   </nav>
 
-  <!-- Desktop / Web banner -->
-  <div id="banner-desktop" style="display:none" class="bg-blue-600 text-white text-center py-2 text-sm">
-    <svg class="w-4 h-4 inline mr-1 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg> Korzystasz z aplikacji desktopowej. Dostępna również online:
-    <a href="https://example.com" class="underline font-medium hover:text-blue-200">example.com</a>
-  </div>
-  <div id="banner-web" style="display:none" class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center py-2 text-sm border-b dark:border-gray-700">
-    <svg class="w-4 h-4 inline mr-1 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg> Chcesz mieć aplikację na Windows? Pobierz wersję desktopową —
-    <a href="https://example.com/contact" class="underline font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800">skontaktuj się ze mną</a>
-  </div>
-
   <main class="max-w-6xl mx-auto px-4 py-6">
     <% if (typeof view !== 'undefined' && view === 'index') { %>
       <%- include('partials/navbar', { groups }) %>
@@ -125,6 +115,33 @@
     <% } %>
   </main>
 
+  <!-- Footer -->
+  <footer class="border-t border-gray-200 dark:border-gray-800 mt-12 py-6">
+    <div class="max-w-6xl mx-auto px-4 text-center text-xs text-gray-400 dark:text-gray-500 space-y-2">
+      <div id="footer-desktop" style="display:none">
+        <p><svg class="w-4 h-4 inline mr-1 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg> UniTodo Desktop</p>
+        <p>Dostępna również przez przeglądarkę:
+          <a href="https://example.com" class="text-blue-500 hover:text-blue-400 underline">example.com</a>
+        </p>
+        <p class="mt-2">
+          © <%= new Date().getFullYear() %> Adam Warzecha —
+          <a href="/privacy" class="hover:text-gray-600 dark:hover:text-gray-300 underline">Polityka prywatności</a>
+        </p>
+      </div>
+      <div id="footer-web" style="display:none">
+        <p><svg class="w-4 h-4 inline mr-1 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 2v4"/><path d="M15 2v4"/><path d="M9 14h6"/><path d="M9 18h6"/></svg> <a href="https://example.com/contact" target="_blank" rel="noopener" class="text-blue-500 hover:text-blue-400 underline font-medium">Pobierz aplikację na Windows</a> — napisz do mnie, a wyślę Ci instalator</p>
+        <p class="mt-2">
+          <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300">UniTodo</a>
+          &nbsp;·&nbsp;
+          <a href="/privacy" class="hover:text-gray-600 dark:hover:text-gray-300 underline">Polityka prywatności</a>
+          &nbsp;·&nbsp;
+          <a href="https://example.com/contact" target="_blank" rel="noopener" class="hover:text-gray-600 dark:hover:text-gray-300 underline">Kontakt</a>
+        </p>
+        <p class="mt-1">© <%= new Date().getFullYear() %> Adam Warzecha</p>
+      </div>
+    </div>
+  </footer>
+
   <script>
 function toggleDarkMode() {
   const html = document.documentElement;
@@ -132,10 +149,10 @@ function toggleDarkMode() {
   localStorage.setItem("darkMode", html.classList.contains("dark"));
 }
 
-// Banner — desktop vs browser detection
+// Footer — desktop vs browser detection
 (function() {
   var isDesktop = localStorage.getItem('unitodo_from') === 'desktop';
-  var el = document.getElementById(isDesktop ? 'banner-desktop' : 'banner-web');
+  var el = document.getElementById(isDesktop ? 'footer-desktop' : 'footer-web');
   if (el) el.style.display = 'block';
 })();
 </script>
