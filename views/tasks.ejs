@@ -129,8 +129,11 @@
       </div>
       <div class="kanban-column space-y-3" data-status="done"
         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
-        <% doneTasks.forEach(task => { %>
+        <% doneTasks.forEach((task, i) => { %>
           <%- include('partials/task-card', { task, subtasks: subtasksByParent[task.id] || [], group, hideDone, members }) %>
+          <% if (i === 2 && doneTasks.length > 3) { %>
+            </div><div id="done-hidden" class="hidden kanban-column space-y-3">
+          <% } %>
         <% }) %>
         <% if (doneTasks.length === 0) { %>
           <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
@@ -139,6 +142,11 @@
           </div>
         <% } %>
       </div>
+      <% if (doneTasks.length > 3) { %>
+        <button onclick="toggleDoneHidden(this)" data-more="Pokaż wszystkie (<%= doneTasks.length - 3 %> więcej)" class="mt-3 w-full text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition py-1.5 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
+          Pokaż wszystkie (<%= doneTasks.length - 3 %> więcej)
+        </button>
+      <% } %>
     </div>
     <% } %>
     <% } %>
@@ -385,4 +393,13 @@ function saveFilters(params) {
     }
   }
 })();
+</script>
+
+<script>
+function toggleDoneHidden(btn) {
+  var hidden = document.getElementById('done-hidden');
+  if (!hidden) return;
+  var expanded = hidden.classList.toggle('hidden');
+  btn.textContent = expanded ? btn.dataset.more : 'Ukryj';
+}
 </script>
