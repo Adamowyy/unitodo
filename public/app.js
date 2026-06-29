@@ -12,6 +12,14 @@
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Disable HTML5 drag-and-drop on touch devices — scrolling takes priority
+  if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    document.querySelectorAll('.task-card[draggable]').forEach(function(card) {
+      card.removeAttribute('draggable');
+      card.style.cursor = '';
+      card.classList.remove('cursor-grab', 'active:cursor-grabbing');
+    });
+  }
   // Method override for _method forms
   document.addEventListener('submit', function(e) {
     const form = e.target;
