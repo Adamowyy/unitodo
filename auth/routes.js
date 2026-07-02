@@ -123,4 +123,54 @@ router.get('/me', requireAuth, (req, res) => {
   res.json({ id: req.user.id, username: req.user.username });
 });
 
+// GET /change-password — formularz zmiany hasła po resecie
+router.get('/change-password', requireAuth, (req, res) => {
+  res.render('layout', {
+    title: 'Zmień hasło — UniTodo',
+    view: 'change-password',
+    error: null,
+    user: req.user
+  });
+});
+
+// POST /change-password — zapisz nowe hasło i wyczyść flagę
+router.post('/change-password', requireAuth, async (req, res) => {
+  const { new_password, confirm_password } = req.body;
+
+  const passwordError = validatePassword(new_password);
+  if (passwordError) {
+    return res.render('layout', {
+      title: 'Zmień hasło — UniTodo',
+      view: 'change-password',
+      error: passwordError,
+      user: req.user
+    });
+  }
+
+  if (new_password !== confirm_password) {
+    return res.render('layout', {
+      title: 'Zmień hasło — UniTodo',
+      view: 'change-password',
+      error: 'Hasła nie są identyczne.',
+      user: req.user
+    });
+  }
+
+  try {
+    const hash = bcrypt.hashSync(new_password, 12);
+    await run(
+      'UPDATE users SET password_hash = $1, force_password_change = FALSE WHERE id = $2',
+      [hash, req.user.id]
+    );
+    res.redirect('/');
+  } catch (err) {
+    res.render('layout', {
+      title: 'Zmień hasło — UniTodo',
+      view: 'change-password',
+      error: 'Błąd serwera. Spróbuj ponownie.',
+      user: req.user
+    });
+  }
+});
+
 module.exports = router;

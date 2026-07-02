@@ -51,7 +51,10 @@ router.post('/users/:id/reset-password', async (req, res) => {
   const newPassword = Math.random().toString(36).slice(-10);
   const hash = bcrypt.hashSync(newPassword, 12);
   
-  await run('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, req.params.id]);
+  await run(
+    'UPDATE users SET password_hash = $1, force_password_change = TRUE WHERE id = $2',
+    [hash, req.params.id]
+  );
   
   res.render('layout', {
     title: 'Admin — UniTodo',

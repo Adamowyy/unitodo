@@ -28,7 +28,8 @@ async function requireAdmin(req, res, next) {
   next();
 }
 
-// Require auth — redirect to login if no valid token
+// Require auth — redirect to login if no valid token.
+// If force_password_change is set, only allow /change-password and /logout.
 async function requireAuth(req, res, next) {
   const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
   if (!token) {
@@ -39,11 +40,26 @@ async function requireAuth(req, res, next) {
   }
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await getOne('SELECT id, username FROM users WHERE id = $1', [decoded.userId]);
+    const user = await getOne(
+      'SELECT id, username, force_password_change FROM users WHERE id = $1',
+      [decoded.userId]
+    );
     if (!user) throw new Error('User not found');
-    req.user = user;
-    res.locals.user = user;
+    req.user = { id: user.id, username: user.username };
+    res.locals.user = req.user;
     res.locals.isAdmin = isAdmin(user.id);
+
+    // Force password change — only allow change-password and logout
+    if (user.force_password_change) {
+      const allowedPaths = ['/change-password', '/logout'];
+      if (!allowedPaths.includes(req.path)) {
+        if (req.headers.accept?.includes('application/json')) {
+          return res.status(403).json({ error: 'Password change required', redirect: '/change-password' });
+        }
+        return res.redirect('/change-password');
+      }
+    }
+
     next();
   } catch (err) {
     if (req.headers.accept?.includes('application/json')) {
