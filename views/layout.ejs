@@ -101,6 +101,8 @@
       <%- include('login') %>
     <% } else if (typeof view !== 'undefined' && view === 'register') { %>
       <%- include('register') %>
+    <% } else if (typeof view !== 'undefined' && view === 'change-password') { %>
+      <%- include('change-password') %>
     <% } else if (typeof view !== 'undefined' && view === 'members') { %>
       <%- include('partials/navbar', { groups: [], group }) %>
       <div class="mt-6">
