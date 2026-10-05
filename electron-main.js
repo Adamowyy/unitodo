@@ -1,15 +1,32 @@
-const { app, BrowserWindow, shell } = require('electron');
+// Desktop wrapper that opens a UniTodo deployment; the address comes from the environment.
+const { app, BrowserWindow, shell, dialog } = require('electron');
+const fs = require('fs');
+const path = require('path');
 
-const URL = (process.env.UNITODO_URL || 'https://example.com') + '?from=app';
+const CONFIG_FILE = path.join(__dirname, 'unitodo.config.json');
+const WINDOW_WIDTH = 1200;
+const WINDOW_HEIGHT = 800;
+const MIN_WIDTH = 800;
+const MIN_HEIGHT = 600;
 
 let mainWindow = null;
 
-function createWindow() {
+/** Returns the deployment address, or null when the app is not configured yet. */
+function resolveAppUrl() {
+  if (process.env.UNITODO_URL) return process.env.UNITODO_URL;
+  try {
+    const config = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+    if (config.url) return config.url;
+  } catch (err) { /* no config file, handled by the caller */ }
+  return null;
+}
+
+function createWindow(url) {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    minWidth: 800,
-    minHeight: 600,
+    width: WINDOW_WIDTH,
+    height: WINDOW_HEIGHT,
+    minWidth: MIN_WIDTH,
+    minHeight: MIN_HEIGHT,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true
@@ -19,11 +36,11 @@ function createWindow() {
     show: false
   });
 
-  mainWindow.loadURL(URL);
+  mainWindow.loadURL(url + '?from=app');
 
-  // Open external links in default browser (target="_blank" only)
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+  // External links open in the default browser, only for target="_blank"
+  mainWindow.webContents.setWindowOpenHandler(({ url: target }) => {
+    shell.openExternal(target);
     return { action: 'deny' };
   });
 
@@ -37,7 +54,16 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  createWindow();
+  const url = resolveAppUrl();
+  if (!url) {
+    dialog.showErrorBox(
+      'UniTodo is not configured',
+      'Set the UNITODO_URL environment variable or create unitodo.config.json with {"url": "https://your-instance"} next to the app.'
+    );
+    app.quit();
+    return;
+  }
+  createWindow(url);
 });
 
 app.on('window-all-closed', () => {
@@ -46,6 +72,6 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   if (mainWindow === null) {
-    createWindow();
+    createWindow(resolveAppUrl());
   }
 });
