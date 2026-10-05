@@ -41,10 +41,13 @@ lives in `i18n/index.js`, one table per language, so a third language is one mor
 
 ## Screenshots
 
-| Notes and comments | Tasks and subtasks |
-|---|---|
-| ![Notes with a comment thread, each note showing its author and timestamp](docs/notes.jpg) | ![The kanban board with priorities, due dates, assignees, subtasks and emoji reactions](docs/tasks.jpg) |
-| Notes carry their author, a timestamp and a comment thread with a delete action per comment. | Tasks move between Todo, In progress and Done; each card shows priority, due date, assignee, subtask checklist and reactions. |
+![The kanban board: Todo, In progress and Done, with subtasks and emoji reactions on the cards](docs/tasks.jpg)
+
+<sub>Tasks move between the three columns by drag and drop on a desktop and by buttons on a touch screen. A card shows its priority, due date, assignee, subtask checklist and reactions.</sub>
+
+![A note with its comment thread, each entry carrying its author and timestamp](docs/notes.jpg)
+
+<sub>Notes belong to a group and keep their author and timestamp. Every note carries a comment thread, and a comment can be deleted by the person who can see it.</sub>
 
 ## Requirements
 
