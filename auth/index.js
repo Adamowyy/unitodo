@@ -1,11 +1,24 @@
-// auth/index.js — JWT auth middleware + helpers
+// auth/index.js — JWT auth middleware and helpers
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { getOne } = require('../db/pg');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'unitodo-dev-secret-change-in-production';
 const TOKEN_EXPIRY = '7d';
+const DEV_SECRET = 'unitodo-dev-secret';
 const ADMIN_IDS = (process.env.ADMIN_USER_IDS || '').split(',').map(id => parseInt(id.trim())).filter(Boolean);
+
+// A missing secret in production would let anyone sign their own tokens, so the
+// app refuses to start instead of falling back to a value that lives in the repo.
+function resolveJwtSecret() {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
+  if (isProduction) {
+    throw new Error('JWT_SECRET is required in production');
+  }
+  return DEV_SECRET;
+}
+
+const JWT_SECRET = resolveJwtSecret();
 
 // Check if user is admin
 function isAdmin(userId) {
@@ -18,10 +31,11 @@ async function requireAdmin(req, res, next) {
     return res.redirect('/login');
   }
   if (!isAdmin(req.user.id)) {
+    const t = res.locals.t;
     return res.status(403).render('layout', {
-      title: '403 — Brak dostępu',
+      title: `${t('error.403_title')} — UniTodo`,
       view: null,
-      body: '<div class="text-center py-16"><h1 class="text-4xl font-bold text-gray-300 dark:text-gray-600 mb-4">403</h1><p class="text-gray-500 dark:text-gray-400">Nie masz uprawnień administratora.</p></div>',
+      body: `<div class="text-center py-16"><h1 class="text-4xl font-bold text-gray-300 dark:text-gray-600 mb-4">403</h1><p class="text-gray-500 dark:text-gray-400">${t('error.no_admin_rights')}</p></div>`,
       user: req.user
     });
   }
@@ -85,4 +99,4 @@ function generateToken(userId) {
   return jwt.sign({ userId }, JWT_SECRET, { expiresIn: TOKEN_EXPIRY });
 }
 
-module.exports = { requireAuth, requireAdmin, optionalAuth, generateToken, JWT_SECRET, isAdmin };
+module.exports = { requireAuth, requireAdmin, optionalAuth, generateToken, JWT_SECRET, isAdmin, resolveJwtSecret };
