@@ -1,7 +1,8 @@
 {
   "name": "unitodo",
   "version": "2.0.0",
-  "description": "UniTodo — wieloosobowa aplikacja z grupami, notatkami i zadaniami",
+  "description": "Multi-user task and note manager: project groups, a kanban board with subtasks, and notes with comments.",
+  "license": "MIT",
   "main": "electron-main.js",
   "scripts": {
     "start": "electron .",
@@ -9,8 +10,21 @@
     "dev": "vercel dev",
     "deploy": "vercel --prod --yes",
     "migrate": "node db/migrate.js",
+    "test": "node --test",
     "build": "electron-builder --win",
     "build:portable": "electron-builder --win portable"
+  },
+  "keywords": [
+    "todo",
+    "kanban",
+    "notes",
+    "express",
+    "postgresql",
+    "ejs",
+    "electron"
+  ],
+  "engines": {
+    "node": ">=20"
   },
   "build": {
     "appId": "com.unitodo.app",
