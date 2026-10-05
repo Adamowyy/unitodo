@@ -1,109 +1,79 @@
 <div class="max-w-2xl mx-auto">
-  <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">Polityka prywatności</h1>
-  
-  <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Ostatnia aktualizacja: 15 czerwca 2026</p>
+  <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6"><%= t('page.privacy') %></h1>
+
+  <p class="text-sm text-gray-500 dark:text-gray-400 mb-6"><%= t('privacy.updated') %></p>
 
   <section class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">1. Administrator danych</h2>
-    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-      Administratorem Twoich danych osobowych jest <strong>Adam Warzecha</strong>, 
-      prowadzący aplikację UniTodo dostępną pod adresem 
-      <a href="https://example.com" class="text-blue-500 hover:text-blue-400 underline">example.com</a>.
-    </p>
-    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-2">
-      Kontakt: poprzez formularz na stronie 
-      <a href="https://example.com/contact" target="_blank" rel="noopener" class="text-blue-500 hover:text-blue-400 underline">example.com/contact</a>.
-    </p>
+    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2"><%= t('privacy.s1_title') %></h2>
+    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"><%= t('privacy.s1_body') %></p>
+    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-2"><%= t('privacy.s1_contact') %></p>
   </section>
 
   <section class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">2. Jakie dane zbieramy</h2>
-    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-      Podczas korzystania z aplikacji zbieramy następujące dane:
-    </p>
+    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2"><%= t('privacy.s2_title') %></h2>
+    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"><%= t('privacy.s2_body') %></p>
     <ul class="list-disc list-inside text-gray-600 dark:text-gray-400 text-sm mt-2 space-y-1">
-      <li><strong>Nazwa użytkownika</strong> — podawana podczas rejestracji, widoczna dla innych użytkowników w grupach.</li>
-      <li><strong>Hasło</strong> — przechowywane wyłącznie w postaci zaszyfrowanej (bcrypt). Nigdy nie przechowujemy haseł w postaci jawnej.</li>
-      <li><strong>Treści tworzone przez użytkownika</strong> — nazwy grup, opisy, notatki, zadania, podzadania, priorytety, terminy.</li>
-      <li><strong>Dane techniczne</strong> — pliki cookie niezbędne do działania aplikacji (token JWT sesji).</li>
+      <li><%- t('privacy.s2_username') %></li>
+      <li><%- t('privacy.s2_password') %></li>
+      <li><%- t('privacy.s2_content') %></li>
+      <li><%- t('privacy.s2_technical') %></li>
     </ul>
   </section>
 
   <section class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">3. Jak przechowujemy dane</h2>
+    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2"><%= t('privacy.s3_title') %></h2>
     <ul class="list-disc list-inside text-gray-600 dark:text-gray-400 text-sm mt-2 space-y-1">
-      <li>Wszystkie dane przechowywane są w bazie danych <strong>PostgreSQL</strong> hostowanej przez <strong>Neon</strong> (serverless).</li>
-      <li>Baza danych znajduje się na serwerach w Unii Europejskiej.</li>
-      <li>Aplikacja działa na infrastrukturze <strong>Vercel</strong> (serverless functions).</li>
-      <li>Hasła są hashowane algorytmem <strong>bcrypt</strong> — nawet administrator nie ma dostępu do Twojego hasła.</li>
+      <li><%- t('privacy.s3_db') %></li>
+      <li><%= t('privacy.s3_location') %></li>
+      <li><%- t('privacy.s3_hash') %></li>
     </ul>
   </section>
 
   <section class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">4. Pliki cookie</h2>
-    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-      Aplikacja wykorzystuje wyłącznie <strong>niezbędne pliki cookie</strong>:
-    </p>
+    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2"><%= t('privacy.s4_title') %></h2>
+    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"><%- t('privacy.s4_body') %></p>
     <ul class="list-disc list-inside text-gray-600 dark:text-gray-400 text-sm mt-2 space-y-1">
-      <li><strong>token</strong> — ciasteczko sesyjne przechowujące token JWT, wymagane do utrzymania logowania. Wygasa po 7 dniach.</li>
-      <li><strong>darkMode</strong> — preferencja trybu ciemnego, przechowywana w localStorage przeglądarki (nie jest to plik cookie).</li>
+      <li><%- t('privacy.s4_token') %></li>
+      <li><%- t('privacy.s4_dark') %></li>
+      <li><%- t('privacy.s4_lang') %></li>
     </ul>
-    <p class="text-gray-600 dark:text-gray-400 text-sm mt-2">
-      Nie używamy plików cookie marketingowych, analitycznych ani śledzących.
-    </p>
+    <p class="text-gray-600 dark:text-gray-400 text-sm mt-2"><%= t('privacy.s4_no_tracking') %></p>
   </section>
 
   <section class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">5. Komu udostępniamy dane</h2>
-    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-      <strong>Nikomu.</strong> Nie sprzedajemy, nie udostępniamy ani nie przekazujemy Twoich danych podmiotom trzecim. 
-      Dane są wykorzystywane wyłącznie w celu działania aplikacji.
-    </p>
-    <p class="text-gray-600 dark:text-gray-400 text-sm mt-2">
-      Twoja nazwa użytkownika jest widoczna dla innych członków grup, do których należysz — 
-      jest to niezbędne do funkcjonowania funkcji współpracy.
-    </p>
+    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2"><%= t('privacy.s5_title') %></h2>
+    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"><%- t('privacy.s5_body') %></p>
+    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-2"><%= t('privacy.s5_visibility') %></p>
   </section>
 
   <section class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">6. Twoje prawa</h2>
-    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-      Zgodnie z RODO przysługują Ci następujące prawa:
-    </p>
+    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2"><%= t('privacy.s6_title') %></h2>
+    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"><%= t('privacy.s6_body') %></p>
     <ul class="list-disc list-inside text-gray-600 dark:text-gray-400 text-sm mt-2 space-y-1">
-      <li><strong>Dostęp do danych</strong> — możesz sprawdzić jakie dane przechowujemy.</li>
-      <li><strong>Sprostowanie danych</strong> — możesz poprawić swoje dane.</li>
-      <li><strong>Usunięcie danych</strong> — możesz zażądać usunięcia konta i wszystkich powiązanych danych.</li>
-      <li><strong>Przenoszenie danych</strong> — możesz otrzymać kopię swoich danych.</li>
-    </ul>
-    <p class="text-gray-600 dark:text-gray-400 text-sm mt-2">
-      Aby skorzystać z tych praw, skontaktuj się z nami przez 
-      <a href="https://example.com/contact" target="_blank" rel="noopener" class="text-blue-500 hover:text-blue-400 underline">formularz kontaktowy</a>.
-    </p>
-  </section>
-
-  <section class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">7. Bezpieczeństwo</h2>
-    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-      Stosujemy środki techniczne i organizacyjne w celu ochrony Twoich danych:
-    </p>
-    <ul class="list-disc list-inside text-gray-600 dark:text-gray-400 text-sm mt-2 space-y-1">
-      <li>Szyfrowanie transmisji — wszystkie połączenia odbywają się przez HTTPS (TLS).</li>
-      <li>Hashowanie haseł — algorytm bcrypt z solą.</li>
-      <li>Uwierzytelnianie JWT — tokeny podpisywane tajnym kluczem.</li>
-      <li>Izolacja danych — każdy użytkownik widzi tylko grupy, do których należy.</li>
+      <li><%- t('privacy.s6_access') %></li>
+      <li><%- t('privacy.s6_rectify') %></li>
+      <li><%- t('privacy.s6_erase') %></li>
+      <li><%- t('privacy.s6_portability') %></li>
     </ul>
   </section>
 
   <section class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">8. Zmiany w polityce prywatności</h2>
-    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-      Zastrzegamy sobie prawo do wprowadzania zmian w niniejszej polityce prywatności. 
-      O wszelkich istotnych zmianach poinformujemy poprzez aplikację lub stronę internetową.
-    </p>
+    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2"><%= t('privacy.s7_title') %></h2>
+    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"><%= t('privacy.s7_body') %></p>
+    <ul class="list-disc list-inside text-gray-600 dark:text-gray-400 text-sm mt-2 space-y-1">
+      <li><%= t('privacy.s7_tls') %></li>
+      <li><%= t('privacy.s7_bcrypt') %></li>
+      <li><%= t('privacy.s7_jwt') %></li>
+      <li><%= t('privacy.s7_isolation') %></li>
+    </ul>
+  </section>
+
+  <section class="mb-6">
+    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2"><%= t('privacy.s8_title') %></h2>
+    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"><%= t('privacy.s8_body') %></p>
   </section>
 
   <div class="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
-    <a href="/" class="text-sm text-blue-500 hover:text-blue-400 underline">← Powrót do strony głównej</a>
+    <a href="/" class="text-sm text-blue-500 hover:text-blue-400 underline"><%= t('common.back_home') %></a>
   </div>
 </div>

@@ -1,73 +1,73 @@
-<!-- views/tasks.ejs - Kanban z priorytetami i podzadaniami -->
+<!-- views/tasks.ejs: kanban board with priorities and subtasks -->
 <div class="mb-6">
   <div class="flex justify-between items-center mb-4">
-    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300">✅ Zadania</h2>
+    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300">✅ <%= t('tasks.title') %></h2>
     <button onclick="openTaskModal(null)" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">
-      + Nowe zadanie
+      + <%= t('tasks.new') %>
     </button>
   </div>
 
   <% if (typeof query !== 'undefined' && query.trim()) { %>
     <div class="mb-4 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-      <span>🔍 Wyniki dla: <strong><%= query %></strong></span>
-      <a href="?" class="text-blue-600 dark:text-blue-400 hover:underline ml-2">Wyczyść</a>
+      <span>🔍 <%= t('common.search_label') %>: <strong><%= query %></strong></span>
+      <a href="?" class="text-blue-600 dark:text-blue-400 hover:underline ml-2"><%= t('common.clear') %></a>
     </div>
   <% } %>
 
-  <!-- Pasek filtrów -->
+  <!-- Filter bar -->
   <div class="flex flex-wrap gap-3 mb-4 items-center">
     <!-- Sort -->
     <div class="flex items-center gap-1.5">
-      <label class="text-xs text-gray-500 dark:text-gray-400">Sortuj:</label>
+      <label class="text-xs text-gray-500 dark:text-gray-400"><%= t('tasks.sort') %></label>
       <select name="sort" onchange="applyFilters(this.value, null, null)"
         class="text-xs px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-        <option value="created_desc" <%= sort === 'created_desc' ? 'selected' : '' %>>Najnowsze</option>
-        <option value="created_asc" <%= sort === 'created_asc' ? 'selected' : '' %>>Najstarsze</option>
-        <option value="priority_desc" <%= sort === 'priority_desc' ? 'selected' : '' %>>Priorytet ↓</option>
-        <option value="priority_asc" <%= sort === 'priority_asc' ? 'selected' : '' %>>Priorytet ↑</option>
-        <option value="due_asc" <%= sort === 'due_asc' ? 'selected' : '' %>>Termin ↓</option>
-        <option value="due_desc" <%= sort === 'due_desc' ? 'selected' : '' %>>Termin ↑</option>
-        <option value="title_asc" <%= sort === 'title_asc' ? 'selected' : '' %>>Alfabetycznie</option>
+        <option value="created_desc" <%= sort === 'created_desc' ? 'selected' : '' %>><%= t('tasks.sort_created_desc') %></option>
+        <option value="created_asc" <%= sort === 'created_asc' ? 'selected' : '' %>><%= t('tasks.sort_created_asc') %></option>
+        <option value="priority_desc" <%= sort === 'priority_desc' ? 'selected' : '' %>><%= t('tasks.sort_priority_desc') %></option>
+        <option value="priority_asc" <%= sort === 'priority_asc' ? 'selected' : '' %>><%= t('tasks.sort_priority_asc') %></option>
+        <option value="due_asc" <%= sort === 'due_asc' ? 'selected' : '' %>><%= t('tasks.sort_due_asc') %></option>
+        <option value="due_desc" <%= sort === 'due_desc' ? 'selected' : '' %>><%= t('tasks.sort_due_desc') %></option>
+        <option value="title_asc" <%= sort === 'title_asc' ? 'selected' : '' %>><%= t('tasks.sort_title_asc') %></option>
       </select>
     </div>
 
-    <!-- Priorytet -->
+    <!-- Priority -->
     <div class="flex items-center gap-1.5">
-      <label class="text-xs text-gray-500 dark:text-gray-400">Priorytet ≥</label>
+      <label class="text-xs text-gray-500 dark:text-gray-400"><%= t('tasks.filter_priority') %></label>
       <select name="filter_priority" onchange="applyFilters(null, this.value, null)"
         class="text-xs px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-        <option value="0" <%= !filter_priority || filter_priority == 0 ? 'selected' : '' %>>Wszystkie</option>
-        <option value="2" <%= filter_priority == 2 ? 'selected' : '' %>>Niski</option>
-        <option value="3" <%= filter_priority == 3 ? 'selected' : '' %>>Średni</option>
-        <option value="4" <%= filter_priority == 4 ? 'selected' : '' %>>Wysoki</option>
+        <option value="0" <%= !filter_priority || filter_priority == 0 ? 'selected' : '' %>><%= t('tasks.filter_all') %></option>
+        <option value="2" <%= filter_priority == 2 ? 'selected' : '' %>><%= t('tasks.priority_low') %></option>
+        <option value="3" <%= filter_priority == 3 ? 'selected' : '' %>><%= t('tasks.priority_medium') %></option>
+        <option value="4" <%= filter_priority == 4 ? 'selected' : '' %>><%= t('tasks.priority_high') %></option>
       </select>
     </div>
 
     <!-- Status -->
     <div class="flex items-center gap-1.5">
-      <label class="text-xs text-gray-500 dark:text-gray-400">Status:</label>
+      <label class="text-xs text-gray-500 dark:text-gray-400"><%= t('tasks.filter_status') %></label>
       <select name="filter_status" onchange="applyFilters(null, null, this.value)"
         class="text-xs px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-        <option value="" <%= !filter_status ? 'selected' : '' %>>Wszystkie</option>
-        <option value="todo" <%= filter_status === 'todo' ? 'selected' : '' %>>Do zrobienia</option>
-        <option value="in_progress" <%= filter_status === 'in_progress' ? 'selected' : '' %>>W trakcie</option>
-        <option value="done" <%= filter_status === 'done' ? 'selected' : '' %>>Zrobione</option>
+        <option value="" <%= !filter_status ? 'selected' : '' %>><%= t('tasks.filter_all') %></option>
+        <option value="todo" <%= filter_status === 'todo' ? 'selected' : '' %>><%= t('tasks.status_todo') %></option>
+        <option value="in_progress" <%= filter_status === 'in_progress' ? 'selected' : '' %>><%= t('tasks.status_in_progress') %></option>
+        <option value="done" <%= filter_status === 'done' ? 'selected' : '' %>><%= t('tasks.status_done') %></option>
       </select>
     </div>
 
-    <!-- Ukryj zrobione -->
+    <!-- Hide done -->
     <label class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 cursor-pointer select-none">
       <input type="checkbox" onchange="toggleHideDone(this.checked)" <%= hideDone ? 'checked' : '' %>
         class="rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400">
-      Ukryj zrobione
+      <%= t('tasks.hide_done') %>
     </label>
 
     <% if (sort !== 'created_desc' || filter_priority > 0 || filter_status || hideDone) { %>
-      <a href="/groups/<%= group.id %>/tasks" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Wyczyść filtry</a>
+      <a href="/groups/<%= group.id %>/tasks" class="text-xs text-blue-600 dark:text-blue-400 hover:underline"><%= t('tasks.clear_filters') %></a>
     <% } %>
   </div>
 
-  <!-- Kolumny Kanban -->
+  <!-- Kanban columns -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <!-- TODO -->
     <% if (!filter_status || filter_status === 'todo') { %>
@@ -75,7 +75,7 @@
     <div class="bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 <%= todoColSpan %>">
       <div class="flex items-center gap-2 mb-4">
         <span class="w-3 h-3 rounded-full bg-blue-500"></span>
-        <h3 class="font-semibold text-gray-700 dark:text-gray-300">Do zrobienia</h3>
+        <h3 class="font-semibold text-gray-700 dark:text-gray-300"><%= t('tasks.status_todo') %></h3>
         <span class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full"><%= todoTasks.length %></span>
       </div>
       <div class="kanban-column space-y-3" data-status="todo"
@@ -85,8 +85,8 @@
         <% }) %>
         <% if (todoTasks.length === 0) { %>
           <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-          <span class="hidden md:inline">Przeciągnij zadania tutaj</span>
-          <span class="md:hidden">Brak zadań</span>
+          <span class="hidden md:inline"><%= t('tasks.drop_here') %></span>
+          <span class="md:hidden"><%= t('tasks.none_in_column') %></span>
           </div>
           <% } %>
           </div>
@@ -99,7 +99,7 @@
           <div class="bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 <%= inProgressColSpan %>">
           <div class="flex items-center gap-2 mb-4">
           <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
-          <h3 class="font-semibold text-gray-700 dark:text-gray-300">W trakcie</h3>
+          <h3 class="font-semibold text-gray-700 dark:text-gray-300"><%= t('tasks.status_in_progress') %></h3>
           <span class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full"><%= inProgressTasks.length %></span>
           </div>
           <div class="kanban-column space-y-3" data-status="in_progress"
@@ -109,8 +109,8 @@
           <% }) %>
           <% if (inProgressTasks.length === 0) { %>
           <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-          <span class="hidden md:inline">Przeciągnij zadania tutaj</span>
-          <span class="md:hidden">Brak zadań</span>
+          <span class="hidden md:inline"><%= t('tasks.drop_here') %></span>
+          <span class="md:hidden"><%= t('tasks.none_in_column') %></span>
           </div>
         <% } %>
       </div>
@@ -125,7 +125,7 @@
     <div class="bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 <%= doneColSpan %>">
       <div class="flex items-center gap-2 mb-4">
         <span class="w-3 h-3 rounded-full bg-green-500"></span>
-        <h3 class="font-semibold text-gray-700 dark:text-gray-300">Zrobione</h3>
+        <h3 class="font-semibold text-gray-700 dark:text-gray-300"><%= t('tasks.status_done') %></h3>
         <span class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full"><%= doneTasks.length %></span>
       </div>
       <div class="space-y-3" data-status="done"
@@ -142,8 +142,8 @@
         <% }) %>
         <% if (doneTasks.length === 0) { %>
           <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-            <span class="hidden md:inline">Przeciągnij zadania tutaj</span>
-            <span class="md:hidden">Brak zadań</span>
+            <span class="hidden md:inline"><%= t('tasks.drop_here') %></span>
+            <span class="md:hidden"><%= t('tasks.none_in_column') %></span>
           </div>
         <% } %>
         </div>
@@ -152,7 +152,7 @@
         <% const remaining = doneTasks.length - 3; %>
         <% const nextBatch = Math.min(CHUNK, remaining); %>
         <button onclick="revealDoneChunk(this)" data-remaining="<%= remaining %>" data-total="<%= remaining %>" data-chunk="<%= CHUNK %>" class="mt-3 w-full text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition py-1.5 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-          Pokaż kolejne (<%= nextBatch %> z <%= remaining %>)
+          <%= t('tasks.show_next', { count: nextBatch, remaining: remaining }) %>
         </button>
       <% } %>
     </div>
@@ -161,46 +161,46 @@
   </div>
 </div>
 
-<!-- Modal dodawania/edycji zadania -->
+<!-- Add/edit task modal -->
 <div id="taskModal" class="modal-overlay">
   <div class="modal-content">
     <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold" id="taskModalTitle">Nowe zadanie</h3>
+      <h3 class="text-lg font-semibold" id="taskModalTitle"><%= t('tasks.new') %></h3>
       <button onclick="closeModal('taskModal')" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400">&times;</button>
     </div>
     <form id="taskForm" method="POST">
       <input type="hidden" name="_method" id="taskMethod" value="POST">
       <input type="hidden" name="status" id="taskStatus" value="todo">
       <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tytuł *</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"><%= t('tasks.field_title') %></label>
         <input type="text" name="title" id="taskTitle" required
           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none dark:bg-gray-700 dark:text-gray-200">
       </div>
       <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Opis</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"><%= t('tasks.field_description') %></label>
         <textarea name="content" id="taskContent" rows="3"
           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none dark:bg-gray-700 dark:text-gray-200"></textarea>
       </div>
       <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Priorytet</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"><%= t('tasks.field_priority') %></label>
         <select name="priority" id="taskPriority"
           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none dark:bg-gray-700 dark:text-gray-200">
-          <option value="1">Brak</option>
-          <option value="2">Niski</option>
-          <option value="3">Średni</option>
-          <option value="4">Wysoki</option>
+          <option value="1"><%= t('tasks.priority_none') %></option>
+          <option value="2"><%= t('tasks.priority_low') %></option>
+          <option value="3"><%= t('tasks.priority_medium') %></option>
+          <option value="4"><%= t('tasks.priority_high') %></option>
         </select>
       </div>
       <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Termin</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"><%= t('tasks.field_due') %></label>
         <input type="date" name="due_date" id="taskDueDate"
           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none dark:bg-gray-700 dark:text-gray-200">
       </div>
       <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Przypisz do</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"><%= t('tasks.field_assignee') %></label>
         <select name="assigned_to" id="taskAssignedTo"
           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none dark:bg-gray-700 dark:text-gray-200">
-          <option value="">— Nikt —</option>
+          <option value=""><%= t('tasks.assignee_none') %></option>
           <% if (typeof members !== 'undefined' && members) { %>
             <% members.forEach(m => { %>
               <option value="<%= m.id %>"><%= m.username %></option>
@@ -209,31 +209,31 @@
         </select>
       </div>
       <div class="flex justify-end gap-2">
-        <button type="button" onclick="closeModal('taskModal')" class="px-4 py-2 text-gray-600 dark:text-gray-300">Anuluj</button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Zapisz</button>
+        <button type="button" onclick="closeModal('taskModal')" class="px-4 py-2 text-gray-600 dark:text-gray-300"><%= t('common.cancel') %></button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><%= t('common.save') %></button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Modal dodawania/edycji podzadania -->
+<!-- Add/edit subtask modal -->
 <div id="subtaskModal" class="modal-overlay">
   <div class="modal-content">
     <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold dark:text-gray-200" id="subtaskModalTitle">Nowe podzadanie</h3>
+      <h3 class="text-lg font-semibold dark:text-gray-200" id="subtaskModalTitle"><%= t('tasks.subtask_new') %></h3>
       <button onclick="closeModal('subtaskModal')" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400">&times;</button>
     </div>
     <form method="POST" id="subtaskForm">
       <input type="hidden" name="_method" id="subtaskMethod" value="POST">
       <input type="hidden" name="parent_id" id="subtaskParentId">
       <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tytuł</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"><%= t('tasks.subtask_title_label') %></label>
         <input type="text" name="title" id="subtaskTitle" required
           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none dark:bg-gray-700 dark:text-gray-200">
       </div>
       <div class="flex justify-end gap-2">
-        <button type="button" onclick="closeModal('subtaskModal')" class="px-4 py-2 text-gray-600 dark:text-gray-300">Anuluj</button>
-        <button type="submit" id="subtaskSubmitBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Dodaj</button>
+        <button type="button" onclick="closeModal('subtaskModal')" class="px-4 py-2 text-gray-600 dark:text-gray-300"><%= t('common.cancel') %></button>
+        <button type="submit" id="subtaskSubmitBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><%= t('common.add') %></button>
       </div>
     </form>
   </div>
@@ -244,7 +244,7 @@ function openTaskModal(taskData) {
   const modal = document.getElementById('taskModal');
   modal.classList.add('active');
   if (taskData) {
-    document.getElementById('taskModalTitle').textContent = 'Edytuj zadanie';
+    document.getElementById('taskModalTitle').textContent = t('task_edit');
     document.getElementById('taskMethod').value = 'PUT';
     document.getElementById('taskForm').action = '/tasks/' + taskData.id;
     document.getElementById('taskTitle').value = taskData.title;
@@ -254,7 +254,7 @@ function openTaskModal(taskData) {
     document.getElementById('taskDueDate').value = taskData.due_date || '';
     document.getElementById('taskAssignedTo').value = taskData.assigned_to || '';
   } else {
-    document.getElementById('taskModalTitle').textContent = 'Nowe zadanie';
+    document.getElementById('taskModalTitle').textContent = t('task_new');
     document.getElementById('taskMethod').value = 'POST';
     document.getElementById('taskForm').action = '/groups/<%= group.id %>/tasks';
     document.getElementById('taskTitle').value = '';
@@ -272,18 +272,18 @@ function openSubtaskModal(e, taskId, subtaskData) {
   modal.classList.add('active');
   if (subtaskData) {
     // Edit mode
-    document.getElementById('subtaskModalTitle').textContent = 'Edytuj podzadanie';
+    document.getElementById('subtaskModalTitle').textContent = t('subtask_edit');
     document.getElementById('subtaskMethod').value = 'PUT';
     document.getElementById('subtaskForm').action = '/subtasks/' + subtaskData.id;
     document.getElementById('subtaskTitle').value = subtaskData.title;
-    document.getElementById('subtaskSubmitBtn').textContent = 'Zapisz';
+    document.getElementById('subtaskSubmitBtn').textContent = t('save');
   } else {
     // Create mode
-    document.getElementById('subtaskModalTitle').textContent = 'Nowe podzadanie';
+    document.getElementById('subtaskModalTitle').textContent = t('subtask_new');
     document.getElementById('subtaskMethod').value = 'POST';
     document.getElementById('subtaskForm').action = '/tasks/' + taskId + '/subtasks';
     document.getElementById('subtaskTitle').value = '';
-    document.getElementById('subtaskSubmitBtn').textContent = 'Dodaj';
+    document.getElementById('subtaskSubmitBtn').textContent = t('add');
   }
   document.getElementById('subtaskParentId').value = taskId;
   document.getElementById('subtaskTitle').focus();
@@ -386,10 +386,10 @@ function saveFilters(params) {
   if (cb) cb.id = 'hideDoneCheck';
 
   if (window.location.search) {
-    // URL has params — save to localStorage
+    // URL has params: save to localStorage
     saveFilters();
   } else {
-    // No URL params — check localStorage
+    // No URL params: check localStorage
     const params = new URLSearchParams();
     ['sort', 'filter_priority', 'filter_status'].forEach(k => {
       const v = localStorage.getItem('tasks_' + k);
@@ -428,11 +428,11 @@ function revealDoneChunk(btn) {
   btn.dataset.remaining = remaining;
 
   if (remaining <= 0) {
-    btn.textContent = 'Ukryj';
+    btn.textContent = t('hide');
     btn.onclick = function() { collapseDone(btn); };
   } else {
     var next = Math.min(chunkSize, remaining);
-    btn.textContent = 'Poka\u017C kolejne (' + next + ' z ' + remaining + ')';
+    btn.textContent = t('show_next', { count: next, remaining: remaining });
   }
 }
 
@@ -448,7 +448,7 @@ function collapseDone(btn) {
   var total = parseInt(btn.dataset.total) || parseInt(btn.dataset.chunk) || 10;
   var chunkSize = parseInt(btn.dataset.chunk) || 10;
   btn.dataset.remaining = total;
-  btn.textContent = 'Poka\u017C kolejne (' + Math.min(chunkSize, total) + ' z ' + total + ')';
+  btn.textContent = t('show_next', { count: Math.min(chunkSize, total), remaining: total });
   btn.onclick = function() { revealDoneChunk(btn); };
 }
 </script>

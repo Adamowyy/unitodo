@@ -1,6 +1,6 @@
-<!-- partials/task-card.ejs - Karta zadania z priorytetem i podzadaniami -->
+<!-- partials/task-card.ejs: task card with priority and subtasks -->
 <%
-  const pLabel = ['', 'Brak', 'Niski', 'Średni', 'Wysoki'][task.priority] || '';
+  const pLabel = ['', t('tasks.priority_none'), t('tasks.priority_low'), t('tasks.priority_medium'), t('tasks.priority_high')][task.priority] || '';
   const pBorder = ['', '', 'border-blue-200 dark:border-blue-800', 'border-orange-200 dark:border-orange-800', 'border-red-200 dark:border-red-800'][task.priority] || 'border-gray-200 dark:border-gray-700';
   const isDone = task.status === 'done' || task.is_completed;
   const taskData = JSON.stringify({id:task.id, title:task.title, content:task.content||'', priority:task.priority, status:task.status||'todo', due_date:task.due_date||'', assigned_to:task.assigned_to||''});
@@ -24,17 +24,17 @@
     <div class="flex gap-0.5 shrink-0">
       <% if (!isDone) { %>
         <button onclick="event.stopPropagation(); completeTask(<%= task.id %>)" draggable="false"
-          class="text-gray-300 dark:text-gray-600 hover:text-green-600 dark:hover:text-green-400 p-0.5" title="Oznacz jako zrobione">
+          class="text-gray-300 dark:text-gray-600 hover:text-green-600 dark:hover:text-green-400 p-0.5" title="<%= t('tasks.mark_done') %>">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
         </button>
       <% } %>
       <button onclick="event.stopPropagation(); openTaskModal(<%= taskData %>)" 
-        class="text-gray-300 dark:text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 p-0.5" title="Edytuj">
+        class="text-gray-300 dark:text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 p-0.5" title="<%= t('common.edit') %>">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
       </button>
-      <form method="POST" action="/tasks/<%= task.id %>?_method=DELETE" data-confirm="Usunąć zadanie wraz z podzadaniami?" class="inline">
+      <form method="POST" action="/tasks/<%= task.id %>?_method=DELETE" data-confirm="<%= t('tasks.delete_confirm') %>" class="inline">
         <input type="hidden" name="_method" value="DELETE">
-        <button type="submit" class="text-gray-300 dark:text-gray-600 hover:text-red-600 dark:hover:text-red-400 p-0.5" title="Usuń">
+        <button type="submit" class="text-gray-300 dark:text-gray-600 hover:text-red-600 dark:hover:text-red-400 p-0.5" title="<%= t('common.delete') %>">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         </button>
       </form>
@@ -51,17 +51,17 @@
     </div>
   <% } %>
 
-  <!-- Termin -->
+  <!-- Due date -->
   <% if (task.due_date) { 
     const dueDate = new Date(task.due_date);
     const isOverdue = dueDate < new Date() && task.status !== 'done' && !task.is_completed;
   %>
     <div class="text-xs mt-1 <%= isOverdue ? 'text-red-500 font-medium' : 'text-gray-400 dark:text-gray-500' %>">
-      <% if (isOverdue) { %><svg class="w-3.5 h-3.5 inline mr-0.5 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><% } %><svg class="w-3.5 h-3.5 inline mr-0.5 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><rect x="3" y="4" width="18" height="18" rx="2"/></svg><%= dueDate.toLocaleDateString('pl-PL') %>
+      <% if (isOverdue) { %><svg class="w-3.5 h-3.5 inline mr-0.5 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><% } %><svg class="w-3.5 h-3.5 inline mr-0.5 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><rect x="3" y="4" width="18" height="18" rx="2"/></svg><%= dueDate.toLocaleDateString(locale) %>
     </div>
   <% } %>
 
-  <!-- Podzadania -->
+  <!-- Subtasks -->
   <% if (subtasks && subtasks.length > 0) { %>
     <div class="mt-2 space-y-1">
       <% subtasks.forEach(st => { %>
@@ -73,12 +73,12 @@
             <%= st.title %>
           </span>
           <button onclick="event.stopPropagation(); openSubtaskModal(event, <%= task.id %>, {id:<%= st.id %>, title:'<%= st.title.replace(/'/g, "\\'") %>'})" draggable="false"
-            class="opacity-0 group-hover:opacity-100 text-gray-300 dark:text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 p-0.5 shrink-0" title="Edytuj podzadanie">
+            class="opacity-0 group-hover:opacity-100 text-gray-300 dark:text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 p-0.5 shrink-0" title="<%= t('tasks.subtask_edit_title') %>">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
           </button>
-          <form method="POST" action="/subtasks/<%= st.id %>?_method=DELETE" data-confirm="Usunąć podzadanie?" class="inline opacity-0 group-hover:opacity-100 shrink-0">
+          <form method="POST" action="/subtasks/<%= st.id %>?_method=DELETE" data-confirm="<%= t('tasks.subtask_delete_confirm') %>" class="inline opacity-0 group-hover:opacity-100 shrink-0">
             <input type="hidden" name="_method" value="DELETE">
-            <button type="submit" class="text-gray-300 dark:text-gray-600 hover:text-red-500 p-0.5" title="Usuń podzadanie">
+            <button type="submit" class="text-gray-300 dark:text-gray-600 hover:text-red-500 p-0.5" title="<%= t('tasks.subtask_delete_title') %>">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
           </form>
@@ -87,11 +87,11 @@
     </div>
   <% } %>
 
-  <!-- Dodaj podzadanie -->
+  <!-- Add a subtask -->
   <button onclick="openSubtaskModal(event, <%= task.id %>)" draggable="false"
     class="mt-2 text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition flex items-center gap-1">
     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-    Dodaj podzadanie
+    <%= t('tasks.subtask_add') %>
   </button>
 
   <!-- Emoji reactions -->
@@ -127,18 +127,18 @@
       <button onclick="event.stopPropagation(); moveTask(<%= task.id %>, 'in_progress')" draggable="false"
         class="flex-1 text-xs bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/40 px-2 py-1 rounded transition flex items-center justify-center gap-1">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        W trakcie
+        <%= t('tasks.move_forward') %>
       </button>
     <% } else if (task.status === 'in_progress') { %>
       <button onclick="event.stopPropagation(); moveTask(<%= task.id %>, 'todo')" draggable="false"
         class="flex-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 px-2 py-1 rounded transition flex items-center justify-center gap-1">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-        Cofnij
+        <%= t('tasks.move_back') %>
       </button>
       <button onclick="event.stopPropagation(); moveTask(<%= task.id %>, 'done')" draggable="false"
         class="flex-1 text-xs bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40 px-2 py-1 rounded transition flex items-center justify-center gap-1">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-        Zrobione
+        <%= t('tasks.move_done') %>
       </button>
     <% } %>
   </div>
@@ -147,7 +147,7 @@
     <button onclick="event.stopPropagation(); moveTask(<%= task.id %>, 'todo')" draggable="false"
       class="w-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 px-2 py-1 rounded transition flex items-center justify-center gap-1">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-      Przywróć
+      <%= t('tasks.restore') %>
     </button>
   </div>
   <% } %>

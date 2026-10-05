@@ -1,3 +1,4 @@
+// routes/notes.js — notes, their comments and search
 const express = require('express');
 const router = express.Router();
 const { getAll, getOne, run } = require('../db/pg');
@@ -31,7 +32,7 @@ router.get('/groups/:id/notes', async (req, res) => {
     );
   }
 
-  // Get comments for all visible notes
+  // Comments of every note on the page
   let comments = [];
   if (notes.length > 0) {
     const noteIds = notes.map(n => n.id);
@@ -43,7 +44,6 @@ router.get('/groups/:id/notes', async (req, res) => {
       [noteIds]
     );
   }
-  // Group comments by parent_id
   const commentsByNote = {};
   comments.forEach(c => {
     if (!commentsByNote[c.parent_id]) commentsByNote[c.parent_id] = [];
@@ -56,7 +56,7 @@ router.get('/groups/:id/notes', async (req, res) => {
   );
 
   res.render('layout', {
-    title: `Notatki — ${group.name}`,
+    title: `${res.locals.t('page.notes')} — ${group.name}`,
     group,
     notes,
     commentsByNote,
@@ -77,20 +77,21 @@ router.post('/groups/:id/notes', async (req, res) => {
   res.redirect(`/groups/${req.params.id}/notes`);
 });
 
-// POST /notes/:id/comments — Add comment
+// POST /notes/:id/comments — add a comment
 router.post('/notes/:id/comments', async (req, res) => {
   try {
     const note = await getOne("SELECT group_id FROM items WHERE id = $1 AND type = 'note'", [req.params.id]);
     if (!note) return res.redirect('/');
-    
+
     const { content } = req.body;
     if (content?.trim()) {
+      // The stored title is a fixed marker, the UI never shows it
       await run(
-        "INSERT INTO items (group_id, parent_id, type, title, content, created_by) VALUES ($1, $2, 'comment', 'Komentarz', $3, $4)",
+        "INSERT INTO items (group_id, parent_id, type, title, content, created_by) VALUES ($1, $2, 'comment', 'Comment', $3, $4)",
         [note.group_id, req.params.id, content.trim(), req.user.id]
       );
     }
-    
+
     res.redirect(303, '/groups/' + note.group_id + '/notes');
   } catch (err) {
     console.error('Comment error:', err.message);
@@ -98,7 +99,7 @@ router.post('/notes/:id/comments', async (req, res) => {
   }
 });
 
-// DELETE /comments/:id — Delete comment
+// DELETE /comments/:id — delete a comment
 router.delete('/comments/:id', async (req, res) => {
   const comment = await getOne("SELECT i.*, i.group_id FROM items i WHERE i.id = $1 AND i.type = 'comment'", [req.params.id]);
   if (comment) {

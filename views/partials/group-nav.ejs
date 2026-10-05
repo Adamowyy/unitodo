@@ -1,4 +1,4 @@
-<!-- partials/group-nav.ejs - Nawigacja wewnątrz grupy -->
+<!-- partials/group-nav.ejs - Navigation inside a group -->
 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <div>
@@ -9,21 +9,21 @@
     </div>
     <div class="flex gap-2 items-center">
       <a href="/groups/<%= group.id %>/members" class="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg transition">
-        👥 Członkowie
+        👥 <%= t('page.members') %>
       </a>
       <% if (group.role === 'owner') { %>
-      <form method="POST" action="/groups/<%= group.id %>?_method=DELETE" data-confirm="Usunąć grupę wraz ze wszystkimi danymi?" class="inline">
+      <form method="POST" action="/groups/<%= group.id %>?_method=DELETE" data-confirm="<%= t('groups.delete_confirm') %>" class="inline">
         <input type="hidden" name="_method" value="DELETE">
         <button type="submit" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg transition inline-flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          Usuń
+          <%= t('common.delete') %>
         </button>
       </form>
       <% } else { %>
-      <form method="POST" action="/groups/<%= group.id %>/leave" data-confirm="Opuścić tę grupę?" class="inline">
+      <form method="POST" action="/groups/<%= group.id %>/leave" data-confirm="<%= t('groups.leave_confirm') %>" class="inline">
         <button type="submit" class="text-sm text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg transition inline-flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
-          Opuść
+          <%= t('groups.leave') %>
         </button>
       </form>
       <% } %>
@@ -33,19 +33,19 @@
   <!-- Search bar -->
   <form method="GET" action="" class="mt-3">
     <div class="relative">
-      <input type="text" name="q" value="<%= typeof query !== 'undefined' ? query : '' %>" placeholder="Szukaj..."
+      <input type="text" name="q" value="<%= typeof query !== 'undefined' ? query : '' %>" placeholder="<%= t('common.search_placeholder') %>"
         class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 outline-none">
       <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
     </div>
   </form>
 
-  <!-- Zakładki -->
+  <!-- Tabs -->
   <div class="flex gap-6 mt-4 border-b border-gray-200 dark:border-gray-700">
     <a href="/groups/<%= group.id %>/notes" class="pb-3 text-sm font-medium <%= activeTab === 'notes' ? 'tab-active text-blue-700 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' %> transition">
-      📝 Notatki
+      📝 <%= t('groups.notes_tab') %>
     </a>
     <a href="/groups/<%= group.id %>/tasks" class="pb-3 text-sm font-medium <%= activeTab === 'tasks' ? 'tab-active text-blue-700 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' %> transition">
-      ✅ Zadania
+      ✅ <%= t('groups.tasks_tab') %>
     </a>
   </div>
 </div>

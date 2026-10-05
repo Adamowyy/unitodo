@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const i18n = require('./i18n');
 
 const app = express();
 
@@ -10,6 +11,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(i18n.middleware);
+
+// Absolute address of this deployment, used for the desktop footer link
+app.use((req, res, next) => {
+  res.locals.instanceHost = req.get('host') || '';
+  res.locals.instanceUrl = `${req.protocol}://${res.locals.instanceHost}`;
+  next();
+});
 
 // Method override
 app.use((req, res, next) => {
@@ -30,7 +39,11 @@ app.use('/', authRoutes);
 
 // Public pages (no auth required)
 app.get('/privacy', (req, res) => {
-  res.render('layout', { title: 'Polityka prywatności — UniTodo', view: 'privacy', user: req.user || null });
+  res.render('layout', {
+    title: `${res.locals.t('page.privacy')} — UniTodo`,
+    view: 'privacy',
+    user: req.user || null
+  });
 });
 
 // Make user available to all views
@@ -56,8 +69,8 @@ app.use('/admin', requireAuth, adminRouter);
 // 404
 app.use((req, res) => {
   res.status(404).render('layout', {
-    title: '404',
-    view: '404',
+    title: `${res.locals.t('page.not_found')} — UniTodo`,
+    view: 'not-found',
     user: req.user || null
   });
 });

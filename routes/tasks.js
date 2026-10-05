@@ -1,3 +1,4 @@
+// routes/tasks.js — kanban board, subtasks and emoji reactions
 const express = require('express');
 const router = express.Router();
 const { getAll, getOne, run } = require('../db/pg');
@@ -66,7 +67,7 @@ router.get('/groups/:id/tasks', async (req, res) => {
     [req.params.id]
   );
 
-  // Fetch reactions for all root tasks
+  // Reactions of every root task on the board
   const allTaskIds = rootTasks.map(t => t.id);
   let reactionsByTask = {};
   if (allTaskIds.length > 0) {
@@ -81,7 +82,7 @@ router.get('/groups/:id/tasks', async (req, res) => {
   }
 
   res.render('layout', {
-    title: `Zadania — ${group.name}`,
+    title: `${res.locals.t('page.tasks')} — ${group.name}`,
     group,
     members,
     todoTasks,
@@ -133,7 +134,7 @@ router.delete('/tasks/:id', async (req, res) => {
 // POST /tasks/:id/subtasks
 router.post('/tasks/:id/subtasks', async (req, res) => {
   const { title } = req.body;
-  if (!title?.trim()) return res.json({ error: 'Tytuł wymagany' });
+  if (!title?.trim()) return res.json({ error: req.t('error.title_required') });
   const parent = await getOne("SELECT group_id, priority FROM items WHERE id = $1 AND type = 'task'", [req.params.id]);
   if (!parent) return res.redirect('/');
   await run(
@@ -152,7 +153,7 @@ router.put('/tasks/:id/toggle', async (req, res) => {
   res.json({ success: true, is_completed: newCompleted });
 });
 
-// PUT /tasks/:id/move — Zmień status zadania (drag & drop) + auto-assign
+// PUT /tasks/:id/move — status change from drag & drop, assigns the mover
 router.put('/tasks/:id/move', async (req, res) => {
   const { status } = req.body;
   if (!['todo', 'in_progress', 'done'].includes(status)) return res.json({ error: 'Invalid status' });
@@ -167,7 +168,7 @@ router.put('/tasks/:id/move', async (req, res) => {
 // PUT /subtasks/:id
 router.put('/subtasks/:id', async (req, res) => {
   const { title } = req.body;
-  if (!title?.trim()) return res.json({ error: 'Tytuł wymagany' });
+  if (!title?.trim()) return res.json({ error: req.t('error.title_required') });
   const item = await getOne('SELECT * FROM items WHERE id = $1 AND parent_id IS NOT NULL', [req.params.id]);
   if (!item) return res.json({ error: 'Not found' });
   await run('UPDATE items SET title = $1, updated_at = NOW() WHERE id = $2', [title.trim(), req.params.id]);
@@ -187,16 +188,16 @@ router.delete('/subtasks/:id', async (req, res) => {
   }
 });
 
-// POST /tasks/:id/react — Toggle reaction
+// POST /tasks/:id/react — toggle one emoji reaction
 router.post('/tasks/:id/react', async (req, res) => {
   const { emoji } = req.body;
   if (!emoji) return res.json({ success: false });
-  
+
   const existing = await getOne(
     'SELECT id FROM reactions WHERE user_id = $1 AND item_id = $2 AND emoji = $3',
     [req.user.id, req.params.id, emoji]
   );
-  
+
   if (existing) {
     await run('DELETE FROM reactions WHERE id = $1', [existing.id]);
   } else {
@@ -205,8 +206,7 @@ router.post('/tasks/:id/react', async (req, res) => {
       [req.user.id, req.params.id, emoji]
     );
   }
-  
-  // Return updated reaction counts
+
   const counts = await getAll(
     'SELECT emoji, COUNT(*) as count FROM reactions WHERE item_id = $1 GROUP BY emoji',
     [req.params.id]

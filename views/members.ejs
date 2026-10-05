@@ -1,5 +1,5 @@
 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 max-w-lg">
-  <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">👥 Członkowie grupy: <%= group.name %></h3>
+  <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">👥 <%= t('members.title', { group: group.name }) %></h3>
 
   <% const currentUser = typeof user !== 'undefined' ? user : null;
      const isOwner = members.some(m => m.id === currentUser?.id && m.role === 'owner'); %>
@@ -10,14 +10,14 @@
         <div class="flex items-center gap-2">
           <span class="text-sm text-gray-800 dark:text-gray-200"><%= m.username %></span>
           <span class="text-xs px-2 py-0.5 rounded-full <%= m.role === 'owner' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' %>">
-            <%= m.role === 'owner' ? 'Właściciel' : 'Członek' %>
+            <%= m.role === 'owner' ? t('members.role_owner') : t('members.role_member') %>
           </span>
         </div>
         <% if (isOwner && m.role !== 'owner' && m.id !== currentUser?.id) { %>
-          <form method="POST" action="/groups/<%= group.id %>/members/<%= m.id %>?_method=DELETE" data-confirm="Usunąć <%= m.username %> z grupy?')" class="inline">
+          <form method="POST" action="/groups/<%= group.id %>/members/<%= m.id %>?_method=DELETE" data-confirm="<%= t('members.remove_confirm', { username: m.username }) %>" class="inline">
             <input type="hidden" name="_method" value="DELETE">
             <button type="submit" class="text-xs text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-2 py-1 border border-red-200 dark:border-red-800 rounded-lg transition">
-              Usuń
+              <%= t('common.delete') %>
             </button>
           </form>
         <% } %>
@@ -27,16 +27,16 @@
 
   <% if (group.invite_code) { %>
     <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-      <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Kod zaproszenia:</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-2"><%= t('members.invite_code') %></p>
       <div class="flex items-center gap-2">
         <code id="inviteCode" class="text-sm bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded text-gray-800 dark:text-gray-200 flex-1 break-all"><%= group.invite_code %></code>
-        <button onclick="copyInviteCode()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0">Kopiuj</button>
-        <button onclick="generateInviteCode(<%= group.id %>)" class="text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 shrink-0 inline-flex items-center gap-1" title="Wygeneruj nowy kod"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Nowy kod</button>
+        <button onclick="copyInviteCode()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0"><%= t('common.copy') %></button>
+        <button onclick="generateInviteCode(<%= group.id %>)" class="text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 shrink-0 inline-flex items-center gap-1" title="<%= t('members.new_code_title') %>"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> <%= t('members.new_code') %></button>
       </div>
     </div>
   <% } %>
 
   <div class="mt-6">
-    <a href="/groups/<%= group.id %>/notes" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">← Powrót do grupy</a>
+    <a href="/groups/<%= group.id %>/notes" class="text-sm text-blue-600 dark:text-blue-400 hover:underline"><%= t('members.back') %></a>
   </div>
 </div>

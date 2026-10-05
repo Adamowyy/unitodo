@@ -1,10 +1,13 @@
-// auth/routes.js — Login & register endpoints
+// auth/routes.js — login, registration and password change endpoints
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
 const router = express.Router();
 const { getAll, getOne, run } = require('../db/pg');
 const { generateToken, requireAuth } = require('./index');
+const { validateUsername, validatePassword } = require('../lib/validate');
+
+const BCRYPT_ROUNDS = 12;
 
 // Cookie settings
 const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
@@ -15,70 +18,64 @@ const cookieOptions = {
   secure: isProduction
 };
 
-// Rate limiters
+// Rate limiters, the message is resolved per request so it follows the UI language
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
-  max: 10,                  // 10 prób logowania
-  message: 'Za dużo prób logowania. Spróbuj ponownie za 15 minut.',
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,                  // 10 login attempts
+  message: (req) => req.t('error.rate_login'),
   standardHeaders: true,
   legacyHeaders: false
 });
 
 const registerLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 godzina
-  max: 3,                    // 3 konta na IP na godzinę
-  message: 'Za dużo rejestracji. Spróbuj ponownie za godzinę.',
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3,                    // 3 accounts per IP per hour
+  message: (req) => req.t('error.rate_register'),
   standardHeaders: true,
   legacyHeaders: false
 });
 
-// Validation helpers
-function validateUsername(username) {
-  if (!username || typeof username !== 'string') return 'Nazwa użytkownika jest wymagana';
-  const trimmed = username.trim();
-  if (trimmed.length < 3) return 'Nazwa użytkownika musi mieć min. 3 znaki';
-  if (trimmed.length > 30) return 'Nazwa użytkownika może mieć max. 30 znaków';
-  if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) return 'Nazwa użytkownika może zawierać tylko litery, cyfry i podkreślenia';
-  return null;
-}
-
-function validatePassword(password) {
-  if (!password || typeof password !== 'string') return 'Hasło jest wymagane';
-  if (password.length < 6) return 'Hasło musi mieć min. 6 znaków';
-  if (password.length > 100) return 'Hasło jest za długie';
-  return null;
+// Renders a login/register style page with an error message key already translated
+function renderForm(req, res, view, titleKey, errorKey) {
+  const t = res.locals.t;
+  res.render('layout', {
+    title: `${t(titleKey)} — UniTodo`,
+    view,
+    error: errorKey ? t(errorKey) : null,
+    user: null
+  });
 }
 
 // GET /login
 router.get('/login', (req, res) => {
-  res.render('layout', { title: 'Logowanie — UniTodo', view: 'login', error: null, user: null });
+  renderForm(req, res, 'login', 'page.login', null);
 });
 
 // POST /login
 router.post('/login', loginLimiter, async (req, res) => {
   const { username, password } = req.body;
-  
+
   const usernameError = validateUsername(username);
   if (usernameError) {
-    return res.render('layout', { title: 'Logowanie — UniTodo', view: 'login', error: usernameError, user: null });
+    return renderForm(req, res, 'login', 'page.login', usernameError);
   }
 
   try {
     const user = await getOne('SELECT * FROM users WHERE username = $1', [username.trim()]);
     if (!user || !bcrypt.compareSync(password || '', user.password_hash)) {
-      return res.render('layout', { title: 'Logowanie — UniTodo', view: 'login', error: 'Nieprawidłowa nazwa użytkownika lub hasło', user: null });
+      return renderForm(req, res, 'login', 'page.login', 'error.invalid_credentials');
     }
     const token = generateToken(user.id);
     res.cookie('token', token, cookieOptions);
     res.redirect('/');
   } catch (err) {
-    res.render('layout', { title: 'Logowanie — UniTodo', view: 'login', error: 'Błąd serwera', user: null });
+    renderForm(req, res, 'login', 'page.login', 'error.server');
   }
 });
 
 // GET /register
 router.get('/register', (req, res) => {
-  res.render('layout', { title: 'Rejestracja — UniTodo', view: 'register', error: null, user: null });
+  renderForm(req, res, 'register', 'page.register', null);
 });
 
 // POST /register
@@ -87,16 +84,16 @@ router.post('/register', registerLimiter, async (req, res) => {
 
   const usernameError = validateUsername(username);
   if (usernameError) {
-    return res.render('layout', { title: 'Rejestracja — UniTodo', view: 'register', error: usernameError, user: null });
+    return renderForm(req, res, 'register', 'page.register', usernameError);
   }
 
   const passwordError = validatePassword(password);
   if (passwordError) {
-    return res.render('layout', { title: 'Rejestracja — UniTodo', view: 'register', error: passwordError, user: null });
+    return renderForm(req, res, 'register', 'page.register', passwordError);
   }
 
   try {
-    const hash = bcrypt.hashSync(password, 12);
+    const hash = bcrypt.hashSync(password, BCRYPT_ROUNDS);
     const result = await run(
       'INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id',
       [username.trim(), hash]
@@ -106,9 +103,9 @@ router.post('/register', registerLimiter, async (req, res) => {
     res.redirect('/');
   } catch (err) {
     if (err.code === '23505') {
-      return res.render('layout', { title: 'Rejestracja — UniTodo', view: 'register', error: 'Nazwa użytkownika jest już zajęta', user: null });
+      return renderForm(req, res, 'register', 'page.register', 'error.username_taken');
     }
-    res.render('layout', { title: 'Rejestracja — UniTodo', view: 'register', error: 'Błąd serwera', user: null });
+    renderForm(req, res, 'register', 'page.register', 'error.server');
   }
 });
 
@@ -118,58 +115,38 @@ router.get('/logout', (req, res) => {
   res.redirect('/login');
 });
 
-// GET /me — endpoint dla Electrona do sprawdzenia auth
+// GET /me — used by the desktop wrapper to check the session
 router.get('/me', requireAuth, (req, res) => {
   res.json({ id: req.user.id, username: req.user.username });
 });
 
-// GET /change-password — formularz zmiany hasła po resecie
+// GET /change-password — form shown after an administrator reset
 router.get('/change-password', requireAuth, (req, res) => {
-  res.render('layout', {
-    title: 'Zmień hasło — UniTodo',
-    view: 'change-password',
-    error: null,
-    user: req.user
-  });
+  renderForm(req, res, 'change-password', 'password.change_title', null);
 });
 
-// POST /change-password — zapisz nowe hasło i wyczyść flagę
+// POST /change-password — stores the new password and clears the flag
 router.post('/change-password', requireAuth, async (req, res) => {
   const { new_password, confirm_password } = req.body;
 
   const passwordError = validatePassword(new_password);
   if (passwordError) {
-    return res.render('layout', {
-      title: 'Zmień hasło — UniTodo',
-      view: 'change-password',
-      error: passwordError,
-      user: req.user
-    });
+    return renderForm(req, res, 'change-password', 'password.change_title', passwordError);
   }
 
   if (new_password !== confirm_password) {
-    return res.render('layout', {
-      title: 'Zmień hasło — UniTodo',
-      view: 'change-password',
-      error: 'Hasła nie są identyczne.',
-      user: req.user
-    });
+    return renderForm(req, res, 'change-password', 'password.change_title', 'error.password_mismatch');
   }
 
   try {
-    const hash = bcrypt.hashSync(new_password, 12);
+    const hash = bcrypt.hashSync(new_password, BCRYPT_ROUNDS);
     await run(
       'UPDATE users SET password_hash = $1, force_password_change = FALSE WHERE id = $2',
       [hash, req.user.id]
     );
     res.redirect('/');
   } catch (err) {
-    res.render('layout', {
-      title: 'Zmień hasło — UniTodo',
-      view: 'change-password',
-      error: 'Błąd serwera. Spróbuj ponownie.',
-      user: req.user
-    });
+    renderForm(req, res, 'change-password', 'password.change_title', 'error.server_retry');
   }
 });
 

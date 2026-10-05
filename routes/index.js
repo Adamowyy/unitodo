@@ -1,8 +1,9 @@
+// routes/index.js — dashboard, groups and membership
 const express = require('express');
 const router = express.Router();
 const { getAll, getOne, run } = require('../db/pg');
 
-// GET / — Dashboard
+// GET / — dashboard grouped by category
 router.get('/', async (req, res) => {
   const groups = await getAll(
     `SELECT g.*, gm.role,
@@ -16,24 +17,26 @@ router.get('/', async (req, res) => {
      ORDER BY g.category, g.created_at DESC`,
     [req.user.id]
   );
-  
-  // Group by category
+
+  // Group by category, the uncategorized bucket is labelled by the view
+  const uncategorized = res.locals.t('groups.uncategorized');
   const categories = {};
   groups.forEach(g => {
-    const cat = g.category || 'Bez kategorii';
+    const cat = g.category || uncategorized;
     if (!categories[cat]) categories[cat] = [];
     categories[cat].push(g);
   });
-  
+
   res.render('layout', {
     title: 'UniTodo',
     view: 'index',
     categories,
+    uncategorized,
     groups
   });
 });
 
-// POST /groups — Create
+// POST /groups — create
 router.post('/groups', async (req, res) => {
   const { name, description, category } = req.body;
   if (!name?.trim()) {
@@ -41,7 +44,12 @@ router.post('/groups', async (req, res) => {
       'SELECT g.*, gm.role FROM groups g JOIN group_members gm ON gm.group_id = g.id WHERE gm.user_id = $1 ORDER BY g.created_at DESC',
       [req.user.id]
     );
-    return res.render('layout', { title: 'UniTodo', view: 'index', groups, error: 'Nazwa grupy jest wymagana' });
+    return res.render('layout', {
+      title: 'UniTodo',
+      view: 'index',
+      groups,
+      error: res.locals.t('error.group_name_required')
+    });
   }
   const result = await run(
     'INSERT INTO groups (name, description, owner_id, category) VALUES ($1, $2, $3, $4) RETURNING id',
@@ -52,7 +60,7 @@ router.post('/groups', async (req, res) => {
   res.redirect('/');
 });
 
-// PUT /groups/:id — Update (owner only)
+// PUT /groups/:id — update (owner only)
 router.put('/groups/:id', async (req, res) => {
   const membership = await getOne(
     'SELECT role FROM group_members WHERE group_id = $1 AND user_id = $2',
@@ -66,7 +74,7 @@ router.put('/groups/:id', async (req, res) => {
   res.redirect('/');
 });
 
-// DELETE /groups/:id — Delete (owner only)
+// DELETE /groups/:id — delete (owner only)
 router.delete('/groups/:id', async (req, res) => {
   const membership = await getOne(
     'SELECT role FROM group_members WHERE group_id = $1 AND user_id = $2',
@@ -79,13 +87,13 @@ router.delete('/groups/:id', async (req, res) => {
   res.redirect('/');
 });
 
-// POST /groups/:id/leave — Leave group (non-owner only)
+// POST /groups/:id/leave — leave (non-owner only)
 router.post('/groups/:id/leave', async (req, res) => {
   const membership = await getOne(
     'SELECT role FROM group_members WHERE group_id = $1 AND user_id = $2',
     [req.params.id, req.user.id]
   );
-  // Owner cannot leave — must delete group instead
+  // The owner cannot leave, they have to delete the group instead
   if (!membership || membership.role === 'owner') {
     return res.redirect('/');
   }
@@ -94,7 +102,7 @@ router.post('/groups/:id/leave', async (req, res) => {
   res.redirect('/');
 });
 
-// GET /groups/:id/members — List members
+// GET /groups/:id/members — member list
 router.get('/groups/:id/members', async (req, res) => {
   const group = await getOne('SELECT * FROM groups WHERE id = $1', [req.params.id]);
   if (!group) return res.redirect('/');
@@ -102,10 +110,15 @@ router.get('/groups/:id/members', async (req, res) => {
     'SELECT u.id, u.username, gm.role FROM users u JOIN group_members gm ON gm.user_id = u.id WHERE gm.group_id = $1 ORDER BY gm.role, u.username',
     [req.params.id]
   );
-  res.render('layout', { title: `Członkowie — ${group.name}`, view: 'members', group, members });
+  res.render('layout', {
+    title: `${res.locals.t('page.members')} — ${group.name}`,
+    view: 'members',
+    group,
+    members
+  });
 });
 
-// POST /groups/:id/invite — Generate/regenerate invite code
+// POST /groups/:id/invite — generate or regenerate the invite code
 router.post('/groups/:id/invite', async (req, res) => {
   const result = await run(
     'UPDATE groups SET invite_code = gen_random_uuid() WHERE id = $1 RETURNING invite_code',
@@ -114,12 +127,12 @@ router.post('/groups/:id/invite', async (req, res) => {
   res.json({ invite_code: result.rows[0].invite_code });
 });
 
-// POST /groups/join/:code — Join a group via invite code
+// POST /groups/join/:code — join through an invite code
 router.post('/groups/join/:code', async (req, res) => {
   const group = await getOne('SELECT * FROM groups WHERE invite_code = $1', [req.params.code]);
-  if (!group) return res.json({ error: 'Nieprawidłowy kod zaproszenia' });
+  if (!group) return res.json({ error: res.locals.t('error.invite_code_invalid') });
 
-  // Check if already member
+  // Already a member? Go straight to the group
   const existing = await getOne('SELECT * FROM group_members WHERE group_id = $1 AND user_id = $2', [group.id, req.user.id]);
   if (existing) return res.redirect(`/groups/${group.id}/notes`);
 
@@ -127,35 +140,33 @@ router.post('/groups/join/:code', async (req, res) => {
   res.redirect(`/groups/${group.id}/notes`);
 });
 
-// DELETE /groups/:id/members/:userId — Remove member (owner only)
+// DELETE /groups/:id/members/:userId — remove a member (owner only)
 router.delete('/groups/:id/members/:userId', async (req, res) => {
   const group = await getOne('SELECT * FROM groups WHERE id = $1', [req.params.id]);
   if (!group) return res.redirect('/');
 
-  // Only owner can remove members
+  // Only the owner can remove members
   const membership = await getOne('SELECT role FROM group_members WHERE group_id = $1 AND user_id = $2', [req.params.id, req.user.id]);
   if (!membership || membership.role !== 'owner') return res.redirect(`/groups/${req.params.id}/members`);
 
-  // Don't remove yourself
+  // Do not remove yourself
   if (parseInt(req.params.userId) === req.user.id) return res.redirect(`/groups/${req.params.id}/members`);
 
   await run('DELETE FROM group_members WHERE group_id = $1 AND user_id = $2', [req.params.id, req.params.userId]);
   res.redirect(`/groups/${req.params.id}/members`);
 });
 
-// GET /groups/:id/poll?since=<ISO> — Check for changes since timestamp
+// GET /groups/:id/poll?since=<ISO> — has anything changed since that timestamp?
 router.get('/groups/:id/poll', async (req, res) => {
   const since = req.query.since;
   if (!since) return res.json({ hasChanges: false });
 
-  // Check items
   const itemChanges = await getOne(
     'SELECT COUNT(*) as count FROM items WHERE group_id = $1 AND updated_at > $2',
     [req.params.id, since]
   );
   if (parseInt(itemChanges.count) > 0) return res.json({ hasChanges: true });
 
-  // Check group members
   const memberChanges = await getOne(
     'SELECT COUNT(*) as count FROM group_members WHERE group_id = $1 AND joined_at > $2',
     [req.params.id, since]

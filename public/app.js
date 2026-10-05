@@ -1,6 +1,6 @@
-// public/app.js — Frontend JavaScript
+// public/app.js — front-end behaviour shared by every page
 
-// Desktop app detection
+// Desktop wrapper detection
 (function() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('from') === 'app') {
@@ -11,8 +11,19 @@
   }
 })();
 
+function t(key, params) {
+  const strings = window.I18N || {};
+  let text = strings[key] || key;
+  if (params) {
+    Object.keys(params).forEach(function(name) {
+      text = text.replace(new RegExp('\\{' + name + '\\}', 'g'), String(params[name]));
+    });
+  }
+  return text;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-  // Disable HTML5 drag-and-drop on touch devices — scrolling takes priority
+  // Drag and drop is disabled on touch devices, scrolling takes priority
   if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
     document.querySelectorAll('.task-card[draggable]').forEach(function(card) {
       card.removeAttribute('draggable');
@@ -20,23 +31,24 @@ document.addEventListener('DOMContentLoaded', function() {
       card.classList.remove('cursor-grab', 'active:cursor-grabbing');
     });
   }
-  // Method override for _method forms
+
+  // Method override for _method forms, with an optional confirmation
   document.addEventListener('submit', function(e) {
     const form = e.target;
-    
+
     const confirmMsg = form.getAttribute('data-confirm');
     if (confirmMsg && !confirm(confirmMsg)) {
       e.preventDefault();
       return;
     }
-    
+
     const methodInput = form.querySelector('input[name="_method"]');
     if (methodInput && methodInput.value !== 'POST') {
       e.preventDefault();
       const method = methodInput.value;
       const action = form.action;
       const formData = new FormData(form);
-      
+
       fetch(action, {
         method: method,
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -56,8 +68,8 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   initLiveSync();
-  
-  // Make URLs clickable in task/note content
+
+  // Make URLs clickable in task and note content
   document.querySelectorAll('.task-card .line-clamp-2, .notes-content, .comment-text').forEach(function(el) {
     linkifyElement(el);
   });
@@ -91,7 +103,7 @@ function copyInviteCode() {
   if (el) navigator.clipboard.writeText(el.textContent);
 }
 
-// --- Move task (mobile) ---
+// --- Move task (the buttons shown on small screens) ---
 function moveTask(taskId, newStatus) {
   fetch('/tasks/' + taskId + '/move', {
     method: 'PUT',
@@ -117,23 +129,24 @@ function toggleEmojiPicker(e, taskId) {
   e.stopPropagation();
   var picker = document.getElementById('emojiPicker' + taskId);
   if (picker) picker.classList.toggle('hidden');
-  
-  // Close other open pickers
+
   document.querySelectorAll('[id^="emojiPicker"]').forEach(function(p) {
     if (p.id !== 'emojiPicker' + taskId) p.classList.add('hidden');
   });
 }
 
-// Close pickers on outside click
+// Close the pickers on an outside click
 document.addEventListener('click', function() {
   document.querySelectorAll('[id^="emojiPicker"]').forEach(function(p) {
     p.classList.add('hidden');
   });
 });
 
-// --- Live Sync ---
+// --- Live sync ---
 var pollTimer = null;
 var pageLoadTime = new Date().toISOString();
+var POLL_INTERVAL_MS = 5000;
+var BANNER_TIMEOUT_MS = 30000;
 
 function initLiveSync() {
   var m = window.location.pathname.match(/^\/groups\/(\d+)\/(notes|tasks)/);
@@ -144,9 +157,10 @@ function initLiveSync() {
       .then(function(r) { return r.json(); })
       .then(function(data) { if (data.hasChanges) showSyncBanner(); })
       .catch(function() {});
-  }, 5000);
+  }, POLL_INTERVAL_MS);
 }
 
+// Reload straight away when nothing is being edited, otherwise offer a banner
 function showSyncBanner() {
   var active = document.activeElement;
   var isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
@@ -156,8 +170,8 @@ function showSyncBanner() {
   var banner = document.createElement('div');
   banner.id = 'syncBanner';
   banner.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-3 animate-slide cursor-pointer';
-  banner.innerHTML = '🔄 Są nowe zmiany — <span class="underline font-medium">odśwież</span>';
+  banner.innerHTML = '🔄 ' + t('sync_new_changes');
   banner.onclick = function() { location.reload(); };
   document.body.appendChild(banner);
-  setTimeout(function() { if (banner.parentNode) banner.remove(); }, 30000);
+  setTimeout(function() { if (banner.parentNode) banner.remove(); }, BANNER_TIMEOUT_MS);
 }
