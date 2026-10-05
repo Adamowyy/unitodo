@@ -4,3 +4,5 @@ dist/
 .env
 .env.local
 .vercel
+public/*.exe
+unitodo.config.json
