@@ -8,6 +8,10 @@ sees the groups they belong to.
 The interface ships in **English (default)** and **Polish**, switched from the navbar. Every string
 lives in `i18n/index.js`, one table per language, so a third language is one more table there.
 
+![The dashboard: groups in categories, each card with its note and open task counters](docs/dashboard.jpg)
+
+<sub>The dashboard groups projects by category. Every card carries its note and open task counters, and the language switcher sits in the navbar next to the dark mode toggle.</sub>
+
 ## At a glance
 
 | | |
@@ -34,6 +38,13 @@ lives in `i18n/index.js`, one table per language, so a third language is one mor
 - **Admin panel** — user, group and item counters, recent registrations, password reset with a
   forced change on first login, account deletion.
 - **Privacy policy page** — a generic template for whoever operates the instance.
+
+## Screenshots
+
+| Notes and comments | Tasks and subtasks |
+|---|---|
+| ![Notes with a comment thread, each note showing its author and timestamp](docs/notes.jpg) | ![The kanban board with priorities, due dates, assignees, subtasks and emoji reactions](docs/tasks.jpg) |
+| Notes carry their author, a timestamp and a comment thread with a delete action per comment. | Tasks move between Todo, In progress and Done; each card shows priority, due date, assignee, subtask checklist and reactions. |
 
 ## Requirements
 
@@ -113,6 +124,7 @@ to catch a template that would break at runtime. CI runs the same command on eve
 ```
 auth/          login, registration, password change, JWT middleware
 db/            PostgreSQL pool and migrations
+docs/          the screenshots used above
 i18n/          every user-visible string, one table per language
 lib/           shared validation rules
 public/        front-end JavaScript, icons
